@@ -18,26 +18,18 @@
  *                                                                        *
  **************************************************************************/
 
-#ifndef _CONSTANTS_H
-#define _CONSTANTS_H
+#ifndef _PUZZLE_H
+#define _PUZZLE_H
 
-// graphics positioning in VRAM
-#define TILEBASE            0x0000      // 4*16 tiles at 8bpp
-#define FONTBASE            0x4000      // 4*16 tiles at 8bpp
-#define MAPBASE0            0xA000      // 64 x 64 tiles
-#define MAPBASE1            0xB000      // 64 x 64 tiles
-#define PALETTEBASE         0x1FA20
-#define PALETTEBYTE         0x00
+#include <stdint.h>
+#include <cbm.h>
 
-#define MAPHEIGHT           64
-#define MAPWIDTH            64
+#include "video.h"
 
-// define tiles
-#define TILE_NONE           0x00
-#define TILE_BACKGROUND     0x01
-#define TILE_EMPTY          0x02
-#define TILE_BLOCKED1       0x03
-#define TILE_BLOCKED2       0x04
-#define TILE_CLUE           0x05
+/**
+ * @brief Build puzzle
+ * 
+ */
+void build_puzzle();
 
-#endif // _CONSTANTS_H
+#endif // _PUZZLE_H

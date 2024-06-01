@@ -22,12 +22,15 @@
 #include <stdint.h>
 
 #include "video.h"
+#include "puzzle.h"
 
 void main() {
     // load assets into memory
     init_screen();
     load_tiles();
     clear_screen();
+
+    build_puzzle();
 
     while(1) {}
 }

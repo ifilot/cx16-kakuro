@@ -18,26 +18,53 @@
  *                                                                        *
  **************************************************************************/
 
-#ifndef _CONSTANTS_H
-#define _CONSTANTS_H
+#include "puzzle.h"
 
-// graphics positioning in VRAM
-#define TILEBASE            0x0000      // 4*16 tiles at 8bpp
-#define FONTBASE            0x4000      // 4*16 tiles at 8bpp
-#define MAPBASE0            0xA000      // 64 x 64 tiles
-#define MAPBASE1            0xB000      // 64 x 64 tiles
-#define PALETTEBASE         0x1FA20
-#define PALETTEBYTE         0x00
+/**
+ * @brief Build puzzle
+ * 
+ */
+void build_puzzle() {
+    uint8_t rows, cols, i, j, idx, ctr, c;
+    uint8_t *v = (uint8_t*)0xA000;
 
-#define MAPHEIGHT           64
-#define MAPWIDTH            64
+    // load puzzle into memory
+    cbm_k_setnam("puzzle.dat");
+    cbm_k_setlfs(0, 8, 2);
+    cbm_k_load(0, 0xA000);
 
-// define tiles
-#define TILE_NONE           0x00
-#define TILE_BACKGROUND     0x01
-#define TILE_EMPTY          0x02
-#define TILE_BLOCKED1       0x03
-#define TILE_BLOCKED2       0x04
-#define TILE_CLUE           0x05
+    rows = (*v >> 4) & 0x0F;
+    cols = *v & 0x0F;
 
-#endif // _CONSTANTS_H
+    ctr = 0;
+    for(i=0; i<rows; i++) {
+        for(j=0; j<cols; j++) {
+            switch(ctr) {
+                case 0:
+                    c = (*v >> 4) & 0x0F;
+                break;
+                case 1:
+                    c = *v & 0x0F;
+                break;
+            }
+
+            if(c == 0) {
+                set_tile(i*2, j*2, TILE_BLOCKED1, 0x00);
+                set_tile(i*2+1, j*2, TILE_BLOCKED2, (1 << 2) | (1 << 3));
+                set_tile(i*2, j*2+1, TILE_BLOCKED2, 0x00);
+                set_tile(i*2+1, j*2+1, TILE_BLOCKED1, (1 << 2) | (1 << 3));
+            } else {
+                set_tile(i*2, j*2, TILE_EMPTY, 0x00);
+                set_tile(i*2+1, j*2, TILE_EMPTY, (1 << 3));
+                set_tile(i*2, j*2+1, TILE_EMPTY, (1 << 2));
+                set_tile(i*2+1, j*2+1, TILE_EMPTY, (1 << 2) | (1 << 3));
+            }
+
+            ctr++;
+            if(ctr == 2) {
+                ctr = 0;
+                v++;
+            }
+        }
+    }
+}

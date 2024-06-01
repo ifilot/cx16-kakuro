@@ -60,4 +60,14 @@ void set_background(uint8_t tile_id);
  */
 void clear_foreground();
 
+/**
+ * @brief Set a tile on LAYER1
+ * 
+ * @param y             y-position of the tile
+ * @param x             x-position of the tile
+ * @param tile_id       which tile to place
+ * @param tile_data     tile placement byte
+ */
+void set_tile(uint8_t y, uint8_t x, uint8_t tile_id, uint8_t tile_data);
+
 #endif // _VIDEO_H
