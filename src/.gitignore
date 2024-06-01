@@ -1,0 +1,7 @@
+*.DAT
+*.PRG
+*.ZSM
+*.o
+*.sym
+*.map
+dump.bin
