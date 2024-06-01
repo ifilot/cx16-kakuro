@@ -35,9 +35,9 @@
 // define tiles
 #define TILE_NONE           0x00
 #define TILE_BACKGROUND     0x01
-#define TILE_EMPTY          0x02
-#define TILE_BLOCKED1       0x03
-#define TILE_BLOCKED2       0x04
-#define TILE_CLUE           0x05
+#define TILE_BLOCKED        0x02
+#define TILE_CLUE1          0x03
+#define TILE_CLUE2          0x04
+#define TILE_EMPTY          0x05
 
 #endif // _CONSTANTS_H

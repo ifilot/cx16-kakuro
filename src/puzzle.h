@@ -23,8 +23,13 @@
 
 #include <stdint.h>
 #include <cbm.h>
+#include <stdlib.h>
 
 #include "video.h"
+
+extern uint8_t* puzzledata;
+extern uint8_t puzzlerows;
+extern uint8_t puzzlecols;
 
 /**
  * @brief Build puzzle

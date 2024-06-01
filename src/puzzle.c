@@ -20,12 +20,17 @@
 
 #include "puzzle.h"
 
+uint8_t* puzzledata = NULL;
+uint8_t puzzlerows = 0;
+uint8_t puzzlecols = 0;
+
 /**
  * @brief Build puzzle
  * 
  */
 void build_puzzle() {
-    uint8_t rows, cols, i, j, idx, ctr, c;
+    uint8_t i, j, ctr, c, idx;
+    uint8_t offset_x, offset_y;
     uint8_t *v = (uint8_t*)0xA000;
 
     // load puzzle into memory
@@ -33,12 +38,22 @@ void build_puzzle() {
     cbm_k_setlfs(0, 8, 2);
     cbm_k_load(0, 0xA000);
 
-    rows = (*v >> 4) & 0x0F;
-    cols = *v & 0x0F;
+    puzzlerows = (*v >> 4) & 0x0F;
+    puzzlecols = *v & 0x0F;
+    puzzledata = (uint8_t*)malloc(puzzlerows*puzzlecols);
+    v++;
+
+    offset_x = 20 - puzzlecols;
+    offset_y = 15 - puzzlerows;
+
+    if((puzzlerows * puzzlecols) % 2 == 1) {
+        offset_x++;
+        offset_y++;
+    }
 
     ctr = 0;
-    for(i=0; i<rows; i++) {
-        for(j=0; j<cols; j++) {
+    for(i=0; i<puzzlerows; i++) {
+        for(j=0; j<puzzlecols; j++) {
             switch(ctr) {
                 case 0:
                     c = (*v >> 4) & 0x0F;
@@ -48,22 +63,74 @@ void build_puzzle() {
                 break;
             }
 
-            if(c == 0) {
-                set_tile(i*2, j*2, TILE_BLOCKED1, 0x00);
-                set_tile(i*2+1, j*2, TILE_BLOCKED2, (1 << 2) | (1 << 3));
-                set_tile(i*2, j*2+1, TILE_BLOCKED2, 0x00);
-                set_tile(i*2+1, j*2+1, TILE_BLOCKED1, (1 << 2) | (1 << 3));
-            } else {
-                set_tile(i*2, j*2, TILE_EMPTY, 0x00);
-                set_tile(i*2+1, j*2, TILE_EMPTY, (1 << 3));
-                set_tile(i*2, j*2+1, TILE_EMPTY, (1 << 2));
-                set_tile(i*2+1, j*2+1, TILE_EMPTY, (1 << 2) | (1 << 3));
-            }
+            puzzledata[i * puzzlecols + j] = c;
 
             ctr++;
             if(ctr == 2) {
                 ctr = 0;
                 v++;
+            }
+        }
+    }
+
+    for(i=0; i<puzzlerows; i++) {
+        for(j=0; j<puzzlecols; j++) {
+            idx = i * puzzlecols + j;
+
+            // if the tile is a number, ignore it
+            if(puzzledata[idx] != 0) {
+                continue;
+            }
+
+            // only check for right-hand non-zero cells
+            if(i >= puzzlerows-3 && j+2 < puzzlecols) {
+                if(puzzledata[idx + 1] > 0 && puzzledata[idx + 1] < 0x0A &&
+                   puzzledata[idx + 2] > 0 && puzzledata[idx + 2] < 0x0A) {
+                    puzzledata[idx] = (1 << 6);
+                    continue;
+                }
+            }
+
+            // only check for bottom cells
+            if(j >= puzzlecols-3) {
+                if(puzzledata[idx + puzzlecols] > 0 && puzzledata[idx + puzzlecols] < 0x0A &&
+                   puzzledata[idx + 2*puzzlecols] > 0 && puzzledata[idx + 2*puzzlecols] < 0x0A) {
+                    puzzledata[idx] = (1 << 7);
+                    continue;
+                }
+            }
+
+            if(puzzledata[idx + 1] > 0 && puzzledata[idx + 1] < 0x0A &&
+               puzzledata[idx + 2] > 0 && puzzledata[idx + 2] < 0x0A) {
+                puzzledata[idx] = (1 << 6);
+            }
+
+            if(puzzledata[idx + puzzlecols] > 0 && puzzledata[idx + puzzlecols] < 0x0A &&
+               puzzledata[idx + 2*puzzlecols] > 0 && puzzledata[idx + 2*puzzlecols] < 0x0A) {
+                puzzledata[idx] = (1 << 7);
+            }
+        }
+    }
+
+    for(i=0; i<puzzlerows; i++) {
+        for(j=0; j<puzzlecols; j++) {
+            c = puzzledata[i * puzzlecols + j];
+
+            if(c == 0) {
+                set_tile(offset_y + i*2, offset_x + j*2, TILE_BLOCKED, 0x00);
+                set_tile(offset_y + i*2+1, offset_x + j*2, TILE_BLOCKED, (1 << 3));
+                set_tile(offset_y + i*2, offset_x + j*2+1, TILE_BLOCKED, (1 << 2));
+                set_tile(offset_y + i*2+1, offset_x + j*2+1, TILE_BLOCKED, (1 << 2) | (1 << 3));
+            } else if(c > 0 && c < 0x0A) {
+                set_tile(offset_y + i*2, offset_x + j*2, TILE_EMPTY, 0x00);
+                set_tile(offset_y + i*2+1, offset_x + j*2, TILE_EMPTY, (1 << 3));
+                set_tile(offset_y + i*2, offset_x + j*2+1, TILE_EMPTY, (1 << 2));
+                set_tile(offset_y + i*2+1, offset_x + j*2+1, TILE_EMPTY, (1 << 2) | (1 << 3));
+            } else {
+                set_tile(offset_y + i*2, offset_x + j*2, TILE_CLUE1, 0x00);
+                set_tile(offset_y + i*2+1, offset_x + j*2, TILE_CLUE2, (1 << 2) | (1 << 3));
+                set_tile(offset_y + i*2, offset_x + j*2+1, TILE_CLUE2, 0x00);
+                set_tile(offset_y + i*2+1, offset_x + j*2+1, TILE_CLUE1, (1 << 2) | (1 << 3));
             }
         }
     }
