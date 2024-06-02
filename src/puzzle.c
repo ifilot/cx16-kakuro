@@ -96,7 +96,7 @@ void build_puzzle() {
             }
 
             // only check for right-hand non-zero cells
-            if(i >= puzzlerows-3 && j+2 < puzzlecols) {
+            if(i >= puzzlerows-2 && j+2 < puzzlecols) {
                 if(puzzledata[idx + 1] > 0 && puzzledata[idx + 1] < 0x0A &&
                    puzzledata[idx + 2] > 0 && puzzledata[idx + 2] < 0x0A) {
                     puzzledata[idx] = (1 << 6);
@@ -105,7 +105,7 @@ void build_puzzle() {
             }
 
             // only check for bottom cells
-            if(j >= puzzlecols-3) {
+            if(j >= puzzlecols-2) {
                 if(puzzledata[idx + puzzlecols] > 0 && puzzledata[idx + puzzlecols] < 0x0A &&
                    puzzledata[idx + 2*puzzlecols] > 0 && puzzledata[idx + 2*puzzlecols] < 0x0A) {
                     puzzledata[idx] = (1 << 7);
@@ -115,12 +115,12 @@ void build_puzzle() {
 
             if(puzzledata[idx + 1] > 0 && puzzledata[idx + 1] < 0x0A &&
                puzzledata[idx + 2] > 0 && puzzledata[idx + 2] < 0x0A) {
-                puzzledata[idx] = (1 << 6);
+                puzzledata[idx] |= (1 << 6);
             }
 
             if(puzzledata[idx + puzzlecols] > 0 && puzzledata[idx + puzzlecols] < 0x0A &&
                puzzledata[idx + 2*puzzlecols] > 0 && puzzledata[idx + 2*puzzlecols] < 0x0A) {
-                puzzledata[idx] = (1 << 7);
+                puzzledata[idx] |= (1 << 7);
             }
         }
     }

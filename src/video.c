@@ -82,7 +82,7 @@ void clear_screen() {
  * @param tile_id background tile index
  */
 void set_background(uint8_t tile_id) {
-    uint8_t i = 0, j=0;
+    uint8_t i,j,k;
     uint32_t map_base_addr;
 
     // set background tiles
@@ -94,7 +94,16 @@ void set_background(uint8_t tile_id) {
     for (j=0; j<MAPHEIGHT; j++) {
         for (i=0; i<MAPWIDTH; i++) {
             VERA.data0 = tile_id;       // background tile
-            VERA.data0 = PALETTEBYTE;   // palette offset data
+            k = PALETTEBYTE;
+            if(j % 2 == 1) {
+                k |= (1 << 3);
+            }
+
+            if(i % 2 == 1) {
+                k |= (1 << 2);
+            }
+
+            VERA.data0 = k;   // palette offset data
         }
     }
 }
