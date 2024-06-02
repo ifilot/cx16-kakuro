@@ -26,10 +26,12 @@
 #include <stdlib.h>
 
 #include "video.h"
+#include "tile.h"
 
 extern uint8_t* puzzledata;
 extern uint8_t puzzlerows;
 extern uint8_t puzzlecols;
+extern uint8_t puzzlecells;
 
 /**
  * @brief Build puzzle

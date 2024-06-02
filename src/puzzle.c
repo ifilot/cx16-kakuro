@@ -23,6 +23,9 @@
 uint8_t* puzzledata = NULL;
 uint8_t puzzlerows = 0;
 uint8_t puzzlecols = 0;
+uint8_t puzzlecells = 0;
+
+static const uint8_t rambank_puzzle = RAMBANK_PUZZLE;
 
 /**
  * @brief Build puzzle
@@ -33,6 +36,10 @@ void build_puzzle() {
     uint8_t offset_x, offset_y;
     uint8_t *v = (uint8_t*)0xA000;
 
+    // set ram bank to load puzzle data into
+    asm("lda %v", rambank_puzzle);
+    asm("sta 0");
+
     // load puzzle into memory
     cbm_k_setnam("puzzle.dat");
     cbm_k_setlfs(0, 8, 2);
@@ -40,7 +47,8 @@ void build_puzzle() {
 
     puzzlerows = (*v >> 4) & 0x0F;
     puzzlecols = *v & 0x0F;
-    puzzledata = (uint8_t*)malloc(puzzlerows*puzzlecols);
+    puzzlecells = puzzlerows*puzzlecols;
+    puzzledata = (uint8_t*)malloc(puzzlecells);
     v++;
 
     offset_x = 20 - puzzlecols;
@@ -73,6 +81,11 @@ void build_puzzle() {
         }
     }
 
+    // swap back to default ram bank
+    asm("lda 0");
+    asm("sta 0");
+
+    // from here on, all puzzle data is in main memory
     for(i=0; i<puzzlerows; i++) {
         for(j=0; j<puzzlecols; j++) {
             idx = i * puzzlecols + j;
@@ -128,9 +141,44 @@ void build_puzzle() {
                 set_tile(offset_y + i*2+1, offset_x + j*2+1, TILE_EMPTY, (1 << 2) | (1 << 3));
             } else {
                 set_tile(offset_y + i*2, offset_x + j*2, TILE_CLUE1, 0x00);
-                set_tile(offset_y + i*2+1, offset_x + j*2, TILE_CLUE2, (1 << 2) | (1 << 3));
-                set_tile(offset_y + i*2, offset_x + j*2+1, TILE_CLUE2, 0x00);
+                set_tile(offset_y + i*2+1, offset_x + j*2, TILE_CLUE2, 0x00);
+                set_tile(offset_y + i*2, offset_x + j*2+1, TILE_CLUE2, (1 << 2) | (1 << 3));
                 set_tile(offset_y + i*2+1, offset_x + j*2+1, TILE_CLUE1, (1 << 2) | (1 << 3));
+            }
+        }
+    }
+
+    ctr = 17;
+    // loop over tiles and generate clues
+    for(i=0; i<puzzlerows; i++) {
+        for(j=0; j<puzzlecols; j++) {
+
+            // generate right-clue
+            idx = i * puzzlecols + j;
+            if(puzzledata[idx] & (1 << 6)) {
+                c = 0;
+                idx++;
+                while((puzzledata[idx] & 0x0F) > 0 && idx < puzzlecells) {
+                    c += puzzledata[idx];
+                    idx++;
+                }
+                build_clue_tile_right(ctr, c);
+                set_tile(offset_y + i*2, offset_x + j*2+1, ctr, 0x00);
+                ctr++;
+            }
+
+            // generate down clue
+            idx = i * puzzlecols + j;
+            if(puzzledata[idx] & (1 << 7)) {
+                c = 0;
+                idx += puzzlecols;
+                while((puzzledata[idx] & 0x0F) > 0 && idx < (puzzlecells)) {
+                    c += puzzledata[idx];
+                    idx += puzzlecols;
+                }
+                build_clue_tile_down(ctr, c);
+                set_tile(offset_y + i*2+1, offset_x + j*2, ctr, 0x00);
+                ctr++;
             }
         }
     }

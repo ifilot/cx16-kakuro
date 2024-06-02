@@ -40,4 +40,13 @@
 #define TILE_CLUE2          0x04
 #define TILE_EMPTY          0x05
 
+// rambanks
+#define RAMBANK_PUZZLE      0x01
+#define RAMBANK_TILE        0x02
+
+// tile creation
+#define SMALL_DIGIT_BUFFER  0xA000
+#define TILE_SRC            0xA140
+#define TILE_BUFFER         0xA240
+
 #endif // _CONSTANTS_H

@@ -18,21 +18,34 @@
  *                                                                        *
  **************************************************************************/
 
-#include <cx16.h>
+#ifndef _TILE_H
+#define _TILE_H
+
 #include <stdint.h>
+#include <cbm.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <ascii_charmap.h>
 
-#include "video.h"
-#include "puzzle.h"
-#include "tile.h"
+#include "constants.h"
 
-void main() {
-    // load assets into memory
-    init_screen();
-    load_tiles();
-    load_small_digits();
-    clear_screen();
+/**
+ * @brief Load small digits into memory
+ * 
+ */
+void load_small_digits();
 
-    build_puzzle();
+/**
+ * @brief Build a new tile and upload it to VRAM
+ * 
+ */
+void build_clue_tile_down(uint16_t vrampos, uint8_t value);
 
-    while(1) {}
-}
+/**
+ * @brief Build a new tile and upload it to VRAM
+ * 
+ */
+void build_clue_tile_right(uint16_t vrampos, uint8_t value);
+
+#endif // _TILE_H
