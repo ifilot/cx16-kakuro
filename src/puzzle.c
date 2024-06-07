@@ -24,6 +24,12 @@ uint8_t* puzzledata = NULL;
 uint8_t puzzlerows = 0;
 uint8_t puzzlecols = 0;
 uint8_t puzzlecells = 0;
+uint8_t offset_x = 0;
+uint8_t offset_y = 0;
+int8_t ccurx = 0;
+int8_t ccury = 0;
+int8_t ocurx = 0;
+int8_t ocury = 0;
 
 static const uint8_t rambank_puzzle = RAMBANK_PUZZLE;
 
@@ -33,7 +39,6 @@ static const uint8_t rambank_puzzle = RAMBANK_PUZZLE;
  */
 void build_puzzle() {
     uint8_t i, j, ctr, c, idx;
-    uint8_t offset_x, offset_y;
     uint8_t *v = (uint8_t*)0xA000;
 
     // set ram bank to load puzzle data into
@@ -180,6 +185,45 @@ void build_puzzle() {
                 set_tile(offset_y + i*2+1, offset_x + j*2, ctr, 0x00);
                 ctr++;
             }
+        }
+    }
+}
+
+void set_puzzle_tile(uint8_t y, uint8_t x, uint8_t tile) {
+    set_tile(offset_y + y*2, offset_x + x*2, tile, 0x00);
+    set_tile(offset_y + y*2+1, offset_x + x*2, tile, (1 << 3));
+    set_tile(offset_y + y*2, offset_x + x*2+1, tile, (1 << 2));
+    set_tile(offset_y + y*2+1, offset_x + x*2+1, tile, (1 << 2) | (1 << 3));
+}
+
+void puzzle_handle_mouse() {
+    static uint8_t mouse_buttons = 0x00;
+    uint16_t *mouse_x = (uint16_t *)0x2;
+    uint16_t *mouse_y = (uint16_t *)0x4;
+    uint8_t d = 0;
+
+    // read mouse
+    asm("ldx #2");
+    asm("jsr $FF6B");
+    asm("sta %v", mouse_buttons);
+
+    // get board position from mouse position
+    ccurx = ((*mouse_x >> 4) - offset_x) >> 1;
+    ccury = ((*mouse_y >> 4) - offset_y) >> 1;
+
+    if(ccurx != ocurx || ccury != ocury) {
+        d = puzzledata[ocury * puzzlecols + ocurx];
+        if(d > 0x00 && d < 0x0A) {
+            set_puzzle_tile(ocury, ocurx, TILE_EMPTY);
+        }
+    }
+
+    if(ccurx >= 0 && ccurx < puzzlecols && ccury >=0 && ccury < puzzlerows) {
+        d = puzzledata[ccury * puzzlecols + ccurx];
+        if(d > 0x00 && d < 0x0A) {
+            set_puzzle_tile(ccury, ccurx, TILE_HIGHLIGHT);
+            ocurx = ccurx;
+            ocury = ccury;
         }
     }
 }

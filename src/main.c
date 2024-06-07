@@ -24,6 +24,7 @@
 #include "video.h"
 #include "puzzle.h"
 #include "tile.h"
+#include "mouse.h"
 
 void main() {
     // load assets into memory
@@ -32,7 +33,13 @@ void main() {
     load_small_digits();
     clear_screen();
 
+    // build the puzzle
     build_puzzle();
 
-    while(1) {}
+    // enable mouse
+    init_mouse();
+
+    while(1) {
+        puzzle_handle_mouse();
+    }
 }

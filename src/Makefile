@@ -4,8 +4,8 @@ PYTHON=python3
 
 make: KAKURO.PRG
 
-KAKURO.PRG: *.c *.h TILES.DAT PUZZLE.DAT SDIGITS.DAT
-	$(CC) -O -o KAKURO.PRG -t cx16 -C kakuro.cfg *.c
+KAKURO.PRG: *.c *.h *.s TILES.DAT PUZZLE.DAT SDIGITS.DAT
+	$(CC) -O -o KAKURO.PRG -t cx16 -C kakuro.cfg *.c *.s
 
 TILES.DAT:
 	$(PYTHON) ../assets/scripts/convert_tilemap.py TILES.DAT

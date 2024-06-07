@@ -39,6 +39,7 @@
 #define TILE_CLUE1          0x03
 #define TILE_CLUE2          0x04
 #define TILE_EMPTY          0x05
+#define TILE_HIGHLIGHT      0x10
 
 // rambanks
 #define RAMBANK_PUZZLE      0x01

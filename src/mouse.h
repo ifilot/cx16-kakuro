@@ -18,35 +18,9 @@
  *                                                                        *
  **************************************************************************/
 
-#ifndef _PUZZLE_H
-#define _PUZZLE_H
+#ifndef _MOUSE_H
+#define _MOUSE_H
 
-#include <stdint.h>
-#include <cbm.h>
-#include <stdlib.h>
+void __fastcall__ init_mouse();
 
-#include "video.h"
-#include "tile.h"
-
-extern uint8_t* puzzledata;
-extern uint8_t puzzlerows;
-extern uint8_t puzzlecols;
-extern uint8_t puzzlecells;
-extern uint8_t offset_x;
-extern uint8_t offset_y;
-extern int8_t ccurx;
-extern int8_t ccury;
-extern int8_t ocurx;
-extern int8_t ocury;
-
-/**
- * @brief Build puzzle
- * 
- */
-void build_puzzle();
-
-void set_puzzle_tile(uint8_t y, uint8_t x, uint8_t tile);
-
-void puzzle_handle_mouse();
-
-#endif // _PUZZLE_H
+#endif // _MOUSE_H
