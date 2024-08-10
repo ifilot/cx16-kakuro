@@ -7,7 +7,7 @@ make: KAKURO.PRG
 KAKURO.PRG: *.c *.h *.s TILES.DAT PUZZLE.DAT SDIGITS.DAT
 	$(CC) -O -o KAKURO.PRG -t cx16 -C kakuro.cfg *.c *.s
 
-TILES.DAT:
+TILES.DAT: ../assets/tiles/tiles.png ../assets/scripts/convert_tilemap.py
 	$(PYTHON) ../assets/scripts/convert_tilemap.py TILES.DAT
 
 PUZZLE.DAT:

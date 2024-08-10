@@ -35,11 +35,13 @@ void main() {
 
     // build the puzzle
     build_puzzle();
+    //show_solution();
 
     // enable mouse
     init_mouse();
 
     while(1) {
         puzzle_handle_mouse();
+        puzzle_handle_keyboard();
     }
 }

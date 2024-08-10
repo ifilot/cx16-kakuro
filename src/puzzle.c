@@ -21,6 +21,7 @@
 #include "puzzle.h"
 
 uint8_t* puzzledata = NULL;
+uint8_t* userdata = NULL;
 uint8_t puzzlerows = 0;
 uint8_t puzzlecols = 0;
 uint8_t puzzlecells = 0;
@@ -36,6 +37,15 @@ static const uint8_t rambank_puzzle = RAMBANK_PUZZLE;
 /**
  * @brief Build puzzle
  * 
+ * PUZZLEDATA FORMATTING
+ * =====================
+ * 
+ *  76543210
+ *  ||||\\\\__ value of tile
+ *  |||\______ whether cell is revealed
+ *  ||\_______ whether cell is locked
+ *  |\________ whether cell contains horizontal clue
+ *  \_________ whether cell contains vertical clue
  */
 void build_puzzle() {
     uint8_t i, j, ctr, c, idx;
@@ -52,8 +62,9 @@ void build_puzzle() {
 
     puzzlerows = (*v >> 4) & 0x0F;
     puzzlecols = *v & 0x0F;
-    puzzlecells = puzzlerows*puzzlecols;
+    puzzlecells = puzzlerows * puzzlecols;
     puzzledata = (uint8_t*)malloc(puzzlecells);
+    userdata = (uint8_t*)malloc(puzzlecells);
     v++;
 
     offset_x = 20 - puzzlecols;
@@ -96,7 +107,7 @@ void build_puzzle() {
             idx = i * puzzlecols + j;
 
             // if the tile is a number, ignore it
-            if(puzzledata[idx] != 0) {
+            if((puzzledata[idx] & 0x0F) != 0) {
                 continue;
             }
 
@@ -104,7 +115,7 @@ void build_puzzle() {
             if(i >= puzzlerows-2 && j+2 < puzzlecols) {
                 if(puzzledata[idx + 1] > 0 && puzzledata[idx + 1] < 0x0A &&
                    puzzledata[idx + 2] > 0 && puzzledata[idx + 2] < 0x0A) {
-                    puzzledata[idx] = (1 << 6);
+                    puzzledata[idx] |= TLDT_HCLUE;
                     continue;
                 }
             }
@@ -113,33 +124,35 @@ void build_puzzle() {
             if(j >= puzzlecols-2) {
                 if(puzzledata[idx + puzzlecols] > 0 && puzzledata[idx + puzzlecols] < 0x0A &&
                    puzzledata[idx + 2*puzzlecols] > 0 && puzzledata[idx + 2*puzzlecols] < 0x0A) {
-                    puzzledata[idx] = (1 << 7);
+                    puzzledata[idx] |= TLDT_VCLUE;
                     continue;
                 }
             }
 
+            // remaining cells
             if(puzzledata[idx + 1] > 0 && puzzledata[idx + 1] < 0x0A &&
                puzzledata[idx + 2] > 0 && puzzledata[idx + 2] < 0x0A) {
-                puzzledata[idx] |= (1 << 6);
+                puzzledata[idx] |= TLDT_HCLUE;
             }
 
             if(puzzledata[idx + puzzlecols] > 0 && puzzledata[idx + puzzlecols] < 0x0A &&
                puzzledata[idx + 2*puzzlecols] > 0 && puzzledata[idx + 2*puzzlecols] < 0x0A) {
-                puzzledata[idx] |= (1 << 7);
+                puzzledata[idx] |= TLDT_VCLUE;
             }
         }
     }
 
     for(i=0; i<puzzlerows; i++) {
         for(j=0; j<puzzlecols; j++) {
-            c = puzzledata[i * puzzlecols + j];
+            idx = i * puzzlecols + j;
+            c = puzzledata[idx];
 
             if(c == 0) {
                 set_tile(offset_y + i*2, offset_x + j*2, TILE_BLOCKED, 0x00);
                 set_tile(offset_y + i*2+1, offset_x + j*2, TILE_BLOCKED, (1 << 3));
                 set_tile(offset_y + i*2, offset_x + j*2+1, TILE_BLOCKED, (1 << 2));
                 set_tile(offset_y + i*2+1, offset_x + j*2+1, TILE_BLOCKED, (1 << 2) | (1 << 3));
-            } else if(c > 0 && c < 0x0A) {
+            } else if(c > 0 && c < 0x0A) { // numeric values
                 set_tile(offset_y + i*2, offset_x + j*2, TILE_EMPTY, 0x00);
                 set_tile(offset_y + i*2+1, offset_x + j*2, TILE_EMPTY, (1 << 3));
                 set_tile(offset_y + i*2, offset_x + j*2+1, TILE_EMPTY, (1 << 2));
@@ -150,17 +163,23 @@ void build_puzzle() {
                 set_tile(offset_y + i*2, offset_x + j*2+1, TILE_CLUE2, (1 << 2) | (1 << 3));
                 set_tile(offset_y + i*2+1, offset_x + j*2+1, TILE_CLUE1, (1 << 2) | (1 << 3));
             }
+
+            if(c > 0 && c < 0x0A) {
+                userdata[idx] = 0;
+            } else {
+                userdata[idx] = TLDT_LOCKED;
+            }
         }
     }
 
-    ctr = 17;
+    ctr = 0x54;
     // loop over tiles and generate clues
     for(i=0; i<puzzlerows; i++) {
         for(j=0; j<puzzlecols; j++) {
 
             // generate right-clue
             idx = i * puzzlecols + j;
-            if(puzzledata[idx] & (1 << 6)) {
+            if(puzzledata[idx] & TLDT_HCLUE) {
                 c = 0;
                 idx++;
                 while((puzzledata[idx] & 0x0F) > 0 && idx < puzzlecells) {
@@ -174,7 +193,7 @@ void build_puzzle() {
 
             // generate down clue
             idx = i * puzzlecols + j;
-            if(puzzledata[idx] & (1 << 7)) {
+            if(puzzledata[idx] & TLDT_VCLUE) {
                 c = 0;
                 idx += puzzlecols;
                 while((puzzledata[idx] & 0x0F) > 0 && idx < (puzzlecells)) {
@@ -189,6 +208,35 @@ void build_puzzle() {
     }
 }
 
+/**
+ * @brief Show the finalized solution
+ * 
+ */
+void show_solution() {
+    uint8_t c = 0;
+    uint8_t i,j,idx;
+
+    // loop over tiles and place answer tiles
+    for(i=0; i<puzzlerows; i++) {
+        for(j=0; j<puzzlecols; j++) {
+
+            // generate right-clue
+            idx = i * puzzlecols + j;
+            if((puzzledata[idx] & TLDT_LOCKED) == 0) {
+                c = puzzledata[idx] & 0x0F;
+                set_solution_tile(i, j, c);
+            }
+        }
+    }
+}
+
+/**
+ * @brief Place a puzzle tile at location
+ * 
+ * @param y         y-position in puzzle
+ * @param x         x-position in puzzle
+ * @param tile      tile_id
+ */
 void set_puzzle_tile(uint8_t y, uint8_t x, uint8_t tile) {
     set_tile(offset_y + y*2, offset_x + x*2, tile, 0x00);
     set_tile(offset_y + y*2+1, offset_x + x*2, tile, (1 << 3));
@@ -196,11 +244,34 @@ void set_puzzle_tile(uint8_t y, uint8_t x, uint8_t tile) {
     set_tile(offset_y + y*2+1, offset_x + x*2+1, tile, (1 << 2) | (1 << 3));
 }
 
+/**
+ * @brief Place the solution value at location
+ * 
+ * @param y             y-position in puzzle
+ * @param x             x-position in puzzle
+ * @param tile_value    tile_value
+ */
+void set_solution_tile(uint8_t y, uint8_t x, uint8_t tile_value) {
+    if(tile_value < 8) {
+        tile_value = tile_value * 2 + 0x20;
+    } else {
+        tile_value = (tile_value - 8) * 2 + 0x40;
+    }
+    set_tile(offset_y + y*2, offset_x + x*2, tile_value, 0x00);
+    set_tile(offset_y + y*2, offset_x + x*2+1, tile_value + 1, 0x00);
+    set_tile(offset_y + y*2+1, offset_x + x*2, tile_value + 0x10, 0x00);
+    set_tile(offset_y + y*2+1, offset_x + x*2+1, tile_value + 0x11, 0x00);
+}
+
+/**
+ * @brief Handle mouse operation
+ * 
+ */
 void puzzle_handle_mouse() {
     static uint8_t mouse_buttons = 0x00;
     uint16_t *mouse_x = (uint16_t *)0x2;
     uint16_t *mouse_y = (uint16_t *)0x4;
-    uint8_t d = 0;
+    uint8_t idx = 0;
 
     // read mouse
     asm("ldx #2");
@@ -211,19 +282,46 @@ void puzzle_handle_mouse() {
     ccurx = ((*mouse_x >> 4) - offset_x) >> 1;
     ccury = ((*mouse_y >> 4) - offset_y) >> 1;
 
+    // release highlight
     if(ccurx != ocurx || ccury != ocury) {
-        d = puzzledata[ocury * puzzlecols + ocurx];
-        if(d > 0x00 && d < 0x0A) {
-            set_puzzle_tile(ocury, ocurx, TILE_EMPTY);
+        idx = ocury * puzzlecols + ocurx;
+        if((userdata[idx] & TLDT_LOCKED) == 0) {
+            if(userdata[idx] & TLDT_WRITTEN) {
+                set_solution_tile(ocury, ocurx, userdata[idx] & 0xF);
+            } else {
+                set_puzzle_tile(ocury, ocurx, TILE_EMPTY);
+            }
         }
     }
 
+    // place highlight
     if(ccurx >= 0 && ccurx < puzzlecols && ccury >=0 && ccury < puzzlerows) {
-        d = puzzledata[ccury * puzzlecols + ccurx];
-        if(d > 0x00 && d < 0x0A) {
+        idx = puzzledata[ccury * puzzlecols + ccurx];
+        if((userdata[idx] & TLDT_LOCKED) == 0) {
             set_puzzle_tile(ccury, ccurx, TILE_HIGHLIGHT);
             ocurx = ccurx;
             ocury = ccury;
         }
     }
+}
+
+/**
+ * @brief Puzzle handle keyboard interaction
+ * 
+ */
+void puzzle_handle_keyboard() {
+    static uint8_t keycode;
+    uint8_t idx;
+
+    // grab keycode
+    asm("jsr $FFE4");
+    asm("sta %v", keycode);
+
+    // if(keycode >= 49 && keycode <= 58) { // value between 0-9        
+    //     idx = ccury * puzzlecols + ccurx;
+    //     if((userdata[idx] & TLDT_LOCKED) == 0) {
+    //         userdata[idx] = (keycode - 48) & 0xF;
+    //         userdata[idx] |= TLDT_WRITTEN;
+    //     }
+    // }
 }

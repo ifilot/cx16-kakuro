@@ -45,8 +45,40 @@ extern int8_t ocury;
  */
 void build_puzzle();
 
+/**
+ * @brief Show the finalized solution
+ * 
+ */
+void show_solution();
+
+/**
+ * @brief Place a puzzle tile at location
+ * 
+ * @param y         y-position in puzzle
+ * @param x         x-position in puzzle
+ * @param tile      tile_id
+ */
 void set_puzzle_tile(uint8_t y, uint8_t x, uint8_t tile);
 
+/**
+ * @brief Place the solution value at location
+ * 
+ * @param y             y-position in puzzle
+ * @param x             x-position in puzzle
+ * @param tile_value    tile_value
+ */
+void set_solution_tile(uint8_t y, uint8_t x, uint8_t tile_value);
+
+/**
+ * @brief Handle mouse operation
+ * 
+ */
 void puzzle_handle_mouse();
+
+/**
+ * @brief Puzzle handle keyboard interaction
+ * 
+ */
+void puzzle_handle_keyboard();
 
 #endif // _PUZZLE_H

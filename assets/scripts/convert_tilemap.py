@@ -50,7 +50,7 @@ def build_tiles(img, palette):
     """
     data = bytearray()
     
-    for i in range(2):      # loop over rows
+    for i in range(6):      # loop over rows
         for j in range(16):  # loop over columns
             
             # loop over pixels
