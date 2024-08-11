@@ -18,30 +18,14 @@
  *                                                                        *
  **************************************************************************/
 
-#include <cx16.h>
+#ifndef _MENU_H
+#define _MENU_H
+
 #include <stdint.h>
 
 #include "video.h"
-#include "puzzle.h"
-#include "tile.h"
-#include "mouse.h"
-#include "menu.h"
+#include "constants.h"
 
-void main() {
-    // load assets into memory
-    init_screen();
-    load_tiles();
-    load_small_digits();
-    clear_screen();
+void build_menu();
 
-    // build the puzzle
-    build_menu();
-
-    // enable mouse
-    init_mouse();
-
-    // while(1) {
-    //     puzzle_handle_mouse();
-    //     puzzle_handle_keyboard();
-    // }
-}
+#endif // _MENU_H

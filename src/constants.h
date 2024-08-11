@@ -40,6 +40,15 @@
 #define TILE_CLUE2          0x04
 #define TILE_EMPTY          0x05
 #define TILE_HIGHLIGHT      0x06
+#define TILE_BTN_EDGE_UD    0x07
+#define TILE_BTN_CORNER     0x08
+#define TILE_BTN_CTR        0x09
+#define TILE_BTN_EDGE_LR    0x0A
+
+// mirroring options
+#define MIRROR_X            (1 << 2)
+#define MIRROR_Y            (1 << 3)
+#define MIRROR_XY           (MIRROR_X | MIRROR_Y)
 
 // rambanks
 #define RAMBANK_PUZZLE      0x01
