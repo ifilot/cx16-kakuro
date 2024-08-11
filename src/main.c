@@ -30,12 +30,12 @@ void main() {
     // load assets into memory
     init_screen();
     load_tiles();
+    //swap_color_font_tiles(0x10, 0x20);
     load_small_digits();
     clear_screen();
 
     // build the puzzle
     build_puzzle();
-    //show_solution();
 
     // enable mouse
     init_mouse();

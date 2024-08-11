@@ -39,11 +39,12 @@
 #define TILE_CLUE1          0x03
 #define TILE_CLUE2          0x04
 #define TILE_EMPTY          0x05
-#define TILE_HIGHLIGHT      0x10
+#define TILE_HIGHLIGHT      0x06
 
 // rambanks
 #define RAMBANK_PUZZLE      0x01
 #define RAMBANK_TILE        0x02
+#define RAMBANK_COLSWAP     0x03
 
 // puzzledata settings
 #define TLDT_REVEALED       (1 << 4)
@@ -58,5 +59,8 @@
 #define SMALL_DIGIT_BUFFER  0xA000
 #define TILE_SRC            0xA140
 #define TILE_BUFFER         0xA240
+
+// banked memory position
+#define BANKED_RAM          0xA000
 
 #endif // _CONSTANTS_H

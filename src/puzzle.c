@@ -148,20 +148,20 @@ void build_puzzle() {
             c = puzzledata[idx];
 
             if(c == 0) {
-                set_tile(offset_y + i*2, offset_x + j*2, TILE_BLOCKED, 0x00);
-                set_tile(offset_y + i*2+1, offset_x + j*2, TILE_BLOCKED, (1 << 3));
-                set_tile(offset_y + i*2, offset_x + j*2+1, TILE_BLOCKED, (1 << 2));
-                set_tile(offset_y + i*2+1, offset_x + j*2+1, TILE_BLOCKED, (1 << 2) | (1 << 3));
+                set_tile(offset_y + i*2, offset_x + j*2, TILE_BLOCKED, 0x00, 0);
+                set_tile(offset_y + i*2+1, offset_x + j*2, TILE_BLOCKED, (1 << 3), 0);
+                set_tile(offset_y + i*2, offset_x + j*2+1, TILE_BLOCKED, (1 << 2), 0);
+                set_tile(offset_y + i*2+1, offset_x + j*2+1, TILE_BLOCKED, (1 << 2) | (1 << 3), 0);
             } else if(c > 0 && c < 0x0A) { // numeric values
-                set_tile(offset_y + i*2, offset_x + j*2, TILE_EMPTY, 0x00);
-                set_tile(offset_y + i*2+1, offset_x + j*2, TILE_EMPTY, (1 << 3));
-                set_tile(offset_y + i*2, offset_x + j*2+1, TILE_EMPTY, (1 << 2));
-                set_tile(offset_y + i*2+1, offset_x + j*2+1, TILE_EMPTY, (1 << 2) | (1 << 3));
+                set_tile(offset_y + i*2, offset_x + j*2, TILE_EMPTY, 0x00, 0);
+                set_tile(offset_y + i*2+1, offset_x + j*2, TILE_EMPTY, (1 << 3), 0);
+                set_tile(offset_y + i*2, offset_x + j*2+1, TILE_EMPTY, (1 << 2), 0);
+                set_tile(offset_y + i*2+1, offset_x + j*2+1, TILE_EMPTY, (1 << 2) | (1 << 3), 0);
             } else {
-                set_tile(offset_y + i*2, offset_x + j*2, TILE_CLUE1, 0x00);
-                set_tile(offset_y + i*2+1, offset_x + j*2, TILE_CLUE2, 0x00);
-                set_tile(offset_y + i*2, offset_x + j*2+1, TILE_CLUE2, (1 << 2) | (1 << 3));
-                set_tile(offset_y + i*2+1, offset_x + j*2+1, TILE_CLUE1, (1 << 2) | (1 << 3));
+                set_tile(offset_y + i*2, offset_x + j*2, TILE_CLUE1, 0x00, 0);
+                set_tile(offset_y + i*2+1, offset_x + j*2, TILE_CLUE2, 0x00, 0);
+                set_tile(offset_y + i*2, offset_x + j*2+1, TILE_CLUE2, (1 << 2) | (1 << 3), 0);
+                set_tile(offset_y + i*2+1, offset_x + j*2+1, TILE_CLUE1, (1 << 2) | (1 << 3), 0);
             }
 
             if((c & 0xF) == 0) {
@@ -185,7 +185,7 @@ void build_puzzle() {
                     idx++;
                 }
                 build_clue_tile_right(ctr, c);
-                set_tile(offset_y + i*2, offset_x + j*2+1, ctr, 0x00);
+                set_tile(offset_y + i*2, offset_x + j*2+1, ctr, 0x00, 0);
                 ctr++;
             }
 
@@ -199,7 +199,7 @@ void build_puzzle() {
                     idx += puzzlecols;
                 }
                 build_clue_tile_down(ctr, c);
-                set_tile(offset_y + i*2+1, offset_x + j*2, ctr, 0x00);
+                set_tile(offset_y + i*2+1, offset_x + j*2, ctr, 0x00, 0);
                 ctr++;
             }
         }
@@ -236,10 +236,10 @@ void show_solution() {
  * @param tile      tile_id
  */
 void set_puzzle_tile(uint8_t y, uint8_t x, uint8_t tile) {
-    set_tile(offset_y + y*2, offset_x + x*2, tile, 0x00);
-    set_tile(offset_y + y*2+1, offset_x + x*2, tile, (1 << 3));
-    set_tile(offset_y + y*2, offset_x + x*2+1, tile, (1 << 2));
-    set_tile(offset_y + y*2+1, offset_x + x*2+1, tile, (1 << 2) | (1 << 3));
+    set_tile(offset_y + y*2, offset_x + x*2, tile, 0x00, 0);
+    set_tile(offset_y + y*2+1, offset_x + x*2, tile, (1 << 3), 0);
+    set_tile(offset_y + y*2, offset_x + x*2+1, tile, (1 << 2), 0);
+    set_tile(offset_y + y*2+1, offset_x + x*2+1, tile, (1 << 2) | (1 << 3), 0);
 }
 
 /**
@@ -255,10 +255,10 @@ void set_solution_tile(uint8_t y, uint8_t x, uint8_t tile_value) {
     } else {
         tile_value = (tile_value - 8) * 2 + 0x40;
     }
-    set_tile(offset_y + y*2, offset_x + x*2, tile_value, 0x00);
-    set_tile(offset_y + y*2, offset_x + x*2+1, tile_value + 1, 0x00);
-    set_tile(offset_y + y*2+1, offset_x + x*2, tile_value + 0x10, 0x00);
-    set_tile(offset_y + y*2+1, offset_x + x*2+1, tile_value + 0x11, 0x00);
+    set_tile(offset_y + y*2, offset_x + x*2, tile_value, 0x00, 1);
+    set_tile(offset_y + y*2, offset_x + x*2+1, tile_value + 1, 0x00, 1);
+    set_tile(offset_y + y*2+1, offset_x + x*2, tile_value + 0x10, 0x00, 1);
+    set_tile(offset_y + y*2+1, offset_x + x*2+1, tile_value + 0x11, 0x00, 1);
 }
 
 /**
@@ -284,11 +284,7 @@ void puzzle_handle_mouse() {
     if(ccurx != ocurx || ccury != ocury) {
         idx = ocury * puzzlecols + ocurx;
         if((puzzledata[idx] & TLDT_LOCKED) == 0) {
-            if(userdata[idx] & TLDT_WRITTEN) {
-                set_solution_tile(ocury, ocurx, userdata[idx] & 0xF);
-            } else {
-                set_puzzle_tile(ocury, ocurx, TILE_EMPTY);
-            }
+            set_puzzle_tile(ocury, ocurx, TILE_EMPTY);
         }
     }
 
@@ -319,6 +315,7 @@ void puzzle_handle_keyboard() {
         idx = ccury * puzzlecols + ccurx;
         if((userdata[idx] & TLDT_LOCKED) == 0) {
             userdata[idx] = (keycode - 48) & 0xF;
+            set_solution_tile(ccury, ccurx, userdata[idx]);
             userdata[idx] |= TLDT_WRITTEN;
         }
     }

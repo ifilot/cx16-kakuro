@@ -29,11 +29,15 @@ void init_screen() {
     VERA.display.hscale = 128;
     VERA.display.vscale = 128;
 
-    // tile configuration
+    // layer 0
+    // This layer contains the game background and the puzzle background; this
+    // includes all 'static' squares
     VERA.layer0.config   = 0x03 | (1 << 4) | (1 << 6);  // 8 bpp color depth
     VERA.layer0.tilebase = (TILEBASE >> 11) | 0x03;     // 16 x 16 tiles
     VERA.layer0.mapbase  = MAPBASE0 >> 9;               // upper 8 bits
     
+    // layer 1
+    // On this layer, the values that the user fills in for the tiles are shown
     VERA.layer1.config   = 0x03 | (1 << 4) | (1 << 6);  // 8 bpp color depth
     VERA.layer1.tilebase = (TILEBASE >> 11) | 0x03;     // 16 x 16 tiles
     VERA.layer1.mapbase  = MAPBASE1 >> 9;
@@ -69,24 +73,22 @@ void load_tiles() {
  * 
  */
 void clear_screen() {
-    // set background
-    set_background(TILE_BACKGROUND);
-
-    // set all foreground tiles to transparent
-    clear_foreground();
+    fill_layer(TILE_BACKGROUND, 0);
+    fill_layer(TILE_NONE, 1);
 }
 
 /**
- * @brief Which tile to use for the background
- * 
+ * @brief Fill layer 0 with all tiles of the same type
+ *
  * @param tile_id background tile index
+ * @param layer   which layer to fill
  */
-void set_background(uint8_t tile_id) {
+void fill_layer(uint8_t tile_id, uint8_t layer) {
     uint8_t i,j,k;
     uint32_t map_base_addr;
 
     // set background tiles
-    map_base_addr = MAPBASE0;
+    map_base_addr = (layer == 0 ? MAPBASE0 : MAPBASE1);
     VERA.address = map_base_addr;
     VERA.address_hi = map_base_addr >> 16;
     VERA.address_hi |= 0b10000;
@@ -109,40 +111,73 @@ void set_background(uint8_t tile_id) {
 }
 
 /**
- * @brief Set all foreground tiles (LAYER1) to transparent
- * 
- */
-void clear_foreground() {
-    uint8_t i = 0, j=0;
-    uint32_t map_base_addr;
-
-    // set all foreground positions to transparent
-    map_base_addr = MAPBASE1;
-    VERA.address = map_base_addr;
-    VERA.address_hi = map_base_addr >> 16;
-    VERA.address_hi |= 0b10000;
-
-    for (j=0; j<MAPHEIGHT; j++) {
-        for (i=0; i<MAPWIDTH; i++) {
-            VERA.data0 = TILE_NONE;        // transparent tile
-            VERA.data0 = PALETTEBYTE;      // palette offset data
-        }
-    }
-}
-
-/**
  * @brief Set a tile on LAYER1
  * 
  * @param y             y-position of the tile
  * @param x             x-position of the tile
  * @param tile_id       which tile to place
  * @param tile_data     tile placement byte
+ * @param layer         which layer to place tile on
  */
-void set_tile(uint8_t y, uint8_t x, uint8_t tile_id, uint8_t tile_data) {
-    uint32_t map_base_addr = MAPBASE1 + (y * MAPWIDTH + x) * 2;
+void set_tile(uint8_t y, uint8_t x, uint8_t tile_id, uint8_t tile_data, uint8_t layer) {
+    uint32_t map_base_addr = (layer == 0 ? MAPBASE0 : MAPBASE1);
+    map_base_addr += (y * MAPWIDTH + x) * 2;
     VERA.address = map_base_addr;
     VERA.address_hi = map_base_addr >> 16;
     VERA.address_hi |= 0b10000;
     VERA.data0 = tile_id;
     VERA.data0 = tile_data;
+}
+
+/**
+ * @brief Swap colors inside VRAM for fonts
+ * 
+ * @param col 
+ */
+void swap_color_font_tiles(uint8_t col1, uint8_t col2) {
+    static const uint8_t rambank_colswap = RAMBANK_COLSWAP;
+    uint8_t i;
+    uint8_t *ptr;
+    uint8_t *end;
+    uint32_t vera_addr = 0;
+
+    // set ram bank
+    asm("lda %v", rambank_colswap);
+    asm("sta 0");
+
+    for(i=0; i<4; i++) {
+        if(i < 2) {
+            end = (uint8_t*)(BANKED_RAM + 16*16*16);
+        } else {
+            end = (uint8_t*)(BANKED_RAM + 16*16*2);
+        }
+
+        vera_addr = TILEBASE + (i+2) * 16 * 16 * 16;
+        VERA.address = vera_addr;
+        VERA.address_hi = vera_addr >> 16;
+        VERA.address_hi |= 0b10000;
+        ptr = (uint8_t*)(BANKED_RAM);
+
+        while(ptr != (uint8_t*)(BANKED_RAM + 16*16*16)) {
+            *ptr = VERA.data0;
+            if(*ptr == col1) {
+                *ptr = col2;
+            }
+            ptr++;
+        }
+
+        vera_addr = TILEBASE + (i+2) * 16 * 16 * 16;
+        VERA.address = vera_addr;
+        VERA.address_hi = vera_addr >> 16;
+        VERA.address_hi |= 0b10000;
+        ptr = (uint8_t*)(BANKED_RAM);
+
+        while(ptr != (uint8_t*)(BANKED_RAM + 16*16*16)) {
+            VERA.data0 = *ptr++;
+        }
+    }
+
+    // swap back to default ram bank
+    asm("lda 0");
+    asm("sta 0");
 }

@@ -48,17 +48,12 @@ void load_tiles();
 void clear_screen();
 
 /**
- * @brief Which tile to use for the background
- * 
+ * @brief Fill layer 0 with all tiles of the same type
+ *
  * @param tile_id background tile index
+ * @param layer   which layer to fill
  */
-void set_background(uint8_t tile_id);
-
-/**
- * @brief Set all foreground tiles (LAYER1) to transparent
- * 
- */
-void clear_foreground();
+void fill_layer(uint8_t tile_id, uint8_t layer);
 
 /**
  * @brief Set a tile on LAYER1
@@ -67,7 +62,15 @@ void clear_foreground();
  * @param x             x-position of the tile
  * @param tile_id       which tile to place
  * @param tile_data     tile placement byte
+ * @param layer         which layer to place tile on
  */
-void set_tile(uint8_t y, uint8_t x, uint8_t tile_id, uint8_t tile_data);
+void set_tile(uint8_t y, uint8_t x, uint8_t tile_id, uint8_t tile_data, uint8_t layer);
+
+/**
+ * @brief Change the color of the big font
+ * 
+ * @param col 
+ */
+void swap_color_font_tiles(uint8_t col1, uint8_t col2);
 
 #endif // _VIDEO_H
