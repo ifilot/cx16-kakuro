@@ -23,7 +23,6 @@
 
 #include <stdint.h>
 #include <cbm.h>
-#include <stdlib.h>
 
 #include "video.h"
 #include "tile.h"

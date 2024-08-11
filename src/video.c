@@ -190,7 +190,7 @@ void write_debug(const char* s) {
         if(v >= '0' && v <= '9') {
             v -= '0';
         } else {
-            v -= 'A' + 10;
+            v = v - 'A' + 10;
         }
 
         if(v < 8) {

@@ -22,10 +22,19 @@
 #define _MENU_H
 
 #include <stdint.h>
+#include <stdio.h>
 
 #include "video.h"
 #include "constants.h"
 
 void build_menu();
+
+/**
+ * @brief Handle mouse operation
+ * 
+ */
+void menu_handle_mouse();
+
+void place_button(uint8_t y, uint8_t x, uint8_t highlight);
 
 #endif // _MENU_H

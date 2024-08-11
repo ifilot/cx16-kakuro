@@ -40,6 +40,10 @@ void main() {
     // enable mouse
     init_mouse();
 
+    while(1) {
+        menu_handle_mouse();
+    }
+
     // while(1) {
     //     puzzle_handle_mouse();
     //     puzzle_handle_keyboard();
