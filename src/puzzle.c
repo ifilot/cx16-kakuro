@@ -64,7 +64,7 @@ void build_puzzle() {
     puzzlecols = *v & 0x0F;
     puzzlecells = puzzlerows * puzzlecols;
     puzzledata = (uint8_t*)malloc(puzzlecells);
-    userdata = (uint8_t*)malloc(puzzlecells);
+    userdata = (uint8_t*)calloc(puzzlecells, 1);
     v++;
 
     offset_x = 20 - puzzlecols;
@@ -164,10 +164,8 @@ void build_puzzle() {
                 set_tile(offset_y + i*2+1, offset_x + j*2+1, TILE_CLUE1, (1 << 2) | (1 << 3));
             }
 
-            if(c > 0 && c < 0x0A) {
-                userdata[idx] = 0;
-            } else {
-                userdata[idx] = TLDT_LOCKED;
+            if((c & 0xF) == 0) {
+                puzzledata[idx] |= TLDT_LOCKED;
             }
         }
     }
@@ -285,7 +283,7 @@ void puzzle_handle_mouse() {
     // release highlight
     if(ccurx != ocurx || ccury != ocury) {
         idx = ocury * puzzlecols + ocurx;
-        if((userdata[idx] & TLDT_LOCKED) == 0) {
+        if((puzzledata[idx] & TLDT_LOCKED) == 0) {
             if(userdata[idx] & TLDT_WRITTEN) {
                 set_solution_tile(ocury, ocurx, userdata[idx] & 0xF);
             } else {
@@ -296,8 +294,8 @@ void puzzle_handle_mouse() {
 
     // place highlight
     if(ccurx >= 0 && ccurx < puzzlecols && ccury >=0 && ccury < puzzlerows) {
-        idx = puzzledata[ccury * puzzlecols + ccurx];
-        if((userdata[idx] & TLDT_LOCKED) == 0) {
+        idx = ccury * puzzlecols + ccurx;
+        if((puzzledata[idx] & TLDT_LOCKED) == 0) {
             set_puzzle_tile(ccury, ccurx, TILE_HIGHLIGHT);
             ocurx = ccurx;
             ocury = ccury;
@@ -317,11 +315,11 @@ void puzzle_handle_keyboard() {
     asm("jsr $FFE4");
     asm("sta %v", keycode);
 
-    // if(keycode >= 49 && keycode <= 58) { // value between 0-9        
-    //     idx = ccury * puzzlecols + ccurx;
-    //     if((userdata[idx] & TLDT_LOCKED) == 0) {
-    //         userdata[idx] = (keycode - 48) & 0xF;
-    //         userdata[idx] |= TLDT_WRITTEN;
-    //     }
-    // }
+    if(keycode >= 49 && keycode <= 58) { // value between 0-9        
+        idx = ccury * puzzlecols + ccurx;
+        if((userdata[idx] & TLDT_LOCKED) == 0) {
+            userdata[idx] = (keycode - 48) & 0xF;
+            userdata[idx] |= TLDT_WRITTEN;
+        }
+    }
 }

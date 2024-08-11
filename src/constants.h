@@ -45,11 +45,14 @@
 #define RAMBANK_PUZZLE      0x01
 #define RAMBANK_TILE        0x02
 
-// tile settings
-#define TLDT_WRITTEN        (1 << 4)
+// puzzledata settings
+#define TLDT_REVEALED       (1 << 4)
 #define TLDT_LOCKED         (1 << 5)
 #define TLDT_HCLUE          (1 << 6)
 #define TLDT_VCLUE          (1 << 7)
+
+// userdata settings
+#define TLDT_WRITTEN        (1 << 4)
 
 // tile creation
 #define SMALL_DIGIT_BUFFER  0xA000
