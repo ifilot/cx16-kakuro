@@ -30,7 +30,6 @@ void main() {
     // load assets into memory
     init_screen();
     load_tiles();
-    //swap_color_font_tiles(0x10, 0x20);
     load_small_digits();
     clear_screen();
 
@@ -39,6 +38,8 @@ void main() {
 
     // enable mouse
     init_mouse();
+
+    write_debug("1234");
 
     while(1) {
         puzzle_handle_mouse();

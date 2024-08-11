@@ -31,6 +31,7 @@ int8_t ccurx = 0;
 int8_t ccury = 0;
 int8_t ocurx = 0;
 int8_t ocury = 0;
+uint16_t tiles_incorrect = 0;
 
 static const uint8_t rambank_puzzle = RAMBANK_PUZZLE;
 
@@ -50,6 +51,9 @@ static const uint8_t rambank_puzzle = RAMBANK_PUZZLE;
 void build_puzzle() {
     uint8_t i, j, ctr, c, idx;
     uint8_t *v = (uint8_t*)0xA000;
+
+    // reset incorrect tile counter
+    tiles_incorrect = 0;
 
     // set ram bank to load puzzle data into
     asm("lda %v", rambank_puzzle);
@@ -166,6 +170,8 @@ void build_puzzle() {
 
             if((c & 0xF) == 0) {
                 puzzledata[idx] |= TLDT_LOCKED;
+            } else {
+                tiles_incorrect++;
             }
         }
     }
@@ -306,6 +312,7 @@ void puzzle_handle_mouse() {
 void puzzle_handle_keyboard() {
     static uint8_t keycode;
     uint8_t idx;
+    char buf[5];
 
     // grab keycode
     asm("jsr $FFE4");
@@ -314,9 +321,28 @@ void puzzle_handle_keyboard() {
     if(keycode >= 49 && keycode <= 58) { // value between 0-9        
         idx = ccury * puzzlecols + ccurx;
         if((userdata[idx] & TLDT_LOCKED) == 0) {
-            userdata[idx] = (keycode - 48) & 0xF;
+            keycode = (keycode - 48) & 0xF;
+
+            if((userdata[idx] & 0xF) != (puzzledata[idx] & 0xF) &&
+               (puzzledata[idx] & 0xF) == keycode) {
+                tiles_incorrect--;
+            }
+
+            if((userdata[idx] & 0xF) == (puzzledata[idx] & 0xF) &&
+               (puzzledata[idx] & 0xF) != keycode) {
+                tiles_incorrect++;
+            }
+
+            userdata[idx] = keycode;
             set_solution_tile(ccury, ccurx, userdata[idx]);
             userdata[idx] |= TLDT_WRITTEN;
+
+            sprintf(buf, "%04X", tiles_incorrect);
+            write_debug(buf);
+
+            if(tiles_incorrect == 0) {
+                swap_color_font_tiles(0x10, 0x60);
+            }
         }
     }
 }

@@ -38,6 +38,7 @@ extern int8_t ccurx;
 extern int8_t ccury;
 extern int8_t ocurx;
 extern int8_t ocury;
+extern uint16_t tiles_incorrect;
 
 /**
  * @brief Build puzzle

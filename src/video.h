@@ -73,4 +73,6 @@ void set_tile(uint8_t y, uint8_t x, uint8_t tile_id, uint8_t tile_data, uint8_t 
  */
 void swap_color_font_tiles(uint8_t col1, uint8_t col2);
 
+void write_debug(const char* s);
+
 #endif // _VIDEO_H

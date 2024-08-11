@@ -181,3 +181,29 @@ void swap_color_font_tiles(uint8_t col1, uint8_t col2) {
     asm("lda 0");
     asm("sta 0");
 }
+
+void write_debug(const char* s) {
+    uint8_t v = *s;
+    uint8_t x = 0;
+    while(*s != '\0') {
+        v = *s;
+        if(v >= '0' && v <= '9') {
+            v -= '0';
+        } else {
+            v -= 'A' + 10;
+        }
+
+        if(v < 8) {
+            v = v * 2 + 0x20;
+        } else {
+            v = (v - 8) * 2 + 0x40;
+        }
+        set_tile(0, x*2, v, 0x00, 1);
+        set_tile(0, x*2+1, v + 1, 0x00, 1);
+        set_tile(1, x*2, v + 0x10, 0x00, 1);
+        set_tile(1, x*2+1, v + 0x11, 0x00, 1);
+
+        s++;
+        x++;
+    }
+}
