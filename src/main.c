@@ -34,18 +34,19 @@ void main() {
     load_small_digits();
     clear_screen();
 
-    // build the puzzle
-    build_menu();
+    // build the menu / puzzle
+    build_puzzle();
+    //build_menu();
 
     // enable mouse
     init_mouse();
 
-    while(1) {
-        menu_handle_mouse();
-    }
-
     // while(1) {
-    //     puzzle_handle_mouse();
-    //     puzzle_handle_keyboard();
+    //     menu_handle_mouse();
     // }
+
+    while(1) {
+        puzzle_handle_mouse();
+        puzzle_handle_keyboard();
+    }
 }

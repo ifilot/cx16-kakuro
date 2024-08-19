@@ -120,8 +120,8 @@ void build_puzzle() {
                 if(puzzledata[idx + 1] > 0 && puzzledata[idx + 1] < 0x0A &&
                    puzzledata[idx + 2] > 0 && puzzledata[idx + 2] < 0x0A) {
                     puzzledata[idx] |= TLDT_HCLUE;
-                    continue;
                 }
+                continue;
             }
 
             // only check for bottom cells
@@ -129,8 +129,8 @@ void build_puzzle() {
                 if(puzzledata[idx + puzzlecols] > 0 && puzzledata[idx + puzzlecols] < 0x0A &&
                    puzzledata[idx + 2*puzzlecols] > 0 && puzzledata[idx + 2*puzzlecols] < 0x0A) {
                     puzzledata[idx] |= TLDT_VCLUE;
-                    continue;
                 }
+                continue;
             }
 
             // remaining cells
