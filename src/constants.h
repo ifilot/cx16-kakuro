@@ -22,8 +22,8 @@
 #define _CONSTANTS_H
 
 // graphics positioning in VRAM
-#define TILEBASE            0x0000      // 4*16 tiles at 8bpp
-#define FONTBASE            0x4000      // 4*16 tiles at 8bpp
+#define TILEBASE            0x0000      // 6*16 tiles at 8bpp
+#define FONTBASE            0x6000      // 4*16 tiles at 8bpp
 #define MAPBASE0            0xA000      // 64 x 64 tiles
 #define MAPBASE1            0xB000      // 64 x 64 tiles
 #define PALETTEBASE         0x1FA20

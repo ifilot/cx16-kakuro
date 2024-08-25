@@ -176,7 +176,7 @@ void build_puzzle() {
         }
     }
 
-    ctr = 0x54;
+    ctr = 0x60;
     // loop over tiles and generate clues
     for(i=0; i<puzzlerows; i++) {
         for(j=0; j<puzzlecols; j++) {
@@ -320,7 +320,7 @@ void puzzle_handle_keyboard() {
 
     if(keycode >= 49 && keycode <= 58) { // value between 0-9        
         idx = ccury * puzzlecols + ccurx;
-        if((userdata[idx] & TLDT_LOCKED) == 0) {
+        if((puzzledata[idx] & TLDT_LOCKED) == 0) {
             keycode = (keycode - 48) & 0xF;
 
             if((userdata[idx] & 0xF) != (puzzledata[idx] & 0xF) &&
