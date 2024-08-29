@@ -27,14 +27,34 @@
 #include "video.h"
 #include "constants.h"
 
+/**
+ * @brief Build the puzzle selection  menu
+ * 
+ */
 void build_menu();
+
+/**
+ * @brief Build a menu page turning tile for the forward direction
+ * 
+ */
+void build_tile_forward();
+
+/**
+ * @brief Build a menu page turning tile for the backward direction
+ * 
+ */
+void build_tile_backward();
+
+/**
+ * @brief Build a menu page turning tile for the backward direction
+ * 
+ */
+void build_icon(uint8_t y, uint8_t x, uint8_t puzzle_id, uint8_t col_id);
 
 /**
  * @brief Handle mouse operation
  * 
  */
 void menu_handle_mouse();
-
-void place_button(uint8_t y, uint8_t x, uint8_t highlight);
 
 #endif // _MENU_H

@@ -53,15 +53,12 @@ void init_screen() {
  * @brief Load the tiles from file into memory
  * 
  */
-void load_tiles() {
+void load_tiles(const char* filename) {
     // location of tile set
     uint32_t addr = 0x0000;
 
-    // counters
-    uint8_t i = 0, j=0;
-
     // load tiles into memory
-    cbm_k_setnam("tiles.dat");
+    cbm_k_setnam(filename);
     cbm_k_setlfs(0, 8, 2);
     cbm_k_load(2, TILEBASE);
 }

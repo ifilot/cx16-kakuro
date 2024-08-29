@@ -37,7 +37,7 @@ void init_screen();
  * @brief Load the tiles from file into memory
  * 
  */
-void load_tiles();
+void load_tiles(const char* filename);
 
 /**
  * @brief Clears the screen

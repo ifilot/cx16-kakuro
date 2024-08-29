@@ -36,11 +36,11 @@ def main():
     palette = get_color_palette()
     
     # encode tiles based on the color palette
-    img = PIL.Image.open(os.path.join(ROOT, '..', 'tiles', 'tiles.png'))
+    img = PIL.Image.open(os.path.join(ROOT, '..', 'tiles', sys.argv[1]))
     data = build_tiles(img, palette)
     
-    with open(sys.argv[1], 'wb') as f:
-        f.write(data)   
+    with open(sys.argv[2], 'wb') as f:
+        f.write(data)
 
 def build_tiles(img, palette):
     """

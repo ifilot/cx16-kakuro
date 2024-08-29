@@ -30,23 +30,23 @@
 void main() {
     // load assets into memory
     init_screen();
-    load_tiles();
+    load_tiles("mtiles.dat");
     load_small_digits();
     clear_screen();
 
     // build the menu / puzzle
-    build_puzzle();
-    //build_menu();
+    //build_puzzle();
+    build_menu();
 
     // enable mouse
     init_mouse();
 
-    // while(1) {
-    //     menu_handle_mouse();
-    // }
-
     while(1) {
-        puzzle_handle_mouse();
-        puzzle_handle_keyboard();
+        menu_handle_mouse();
     }
+
+    // while(1) {
+    //     puzzle_handle_mouse();
+    //     puzzle_handle_keyboard();
+    // }
 }

@@ -23,31 +23,77 @@
 int8_t obtnx = 0; 
 int8_t obtny = 0;
 
+/**
+ * @brief Build the puzzle selection  menu
+ * 
+ */
 void build_menu() {
-    uint8_t i,j,k,l;
-    static const uint8_t offset_x = 4;
-    static const uint8_t offset_y = 4;
-
-    k = 1;
-    l = 0;
-    for(i=0; i<8; i++) {
-        for(j=0; j<8; j++) {
-            
-            place_button(i, j, 0);
-
-            if(k == 10) {
-                k = 0;
-            }
-
-            set_tile(offset_y + i*3+1, offset_x + j*4+1, 0x10+l, 0x00, 1);
-            set_tile(offset_y + i*3+1, offset_x + j*4+2, 0x10+k, 0x00, 1);
-
-            if(k == 0) {
-                l++;
-            }
-
-            k++;
+    uint8_t i,j;
+    
+    for(i=2; i<=27; i++) {
+        set_tile(i, 1, 0x04, 0x00, 0x00);
+        for(j=2; j<=37; j++) {
+            set_tile(i, j, 0x06, 0x00, 0x00);
         }
+        set_tile(i, 38, 0x04, MIRROR_X, 0x00);
+    }
+
+    set_tile(1, 1, 0x02, 0x00, 0x00);
+    for(j=2; j<=37; j++) {
+        set_tile(1, j, 0x03, 0x00, 0x00);
+        set_tile(28, j, 0x05, 0x00, 0x00);
+    }
+    set_tile(1, 38, 0x02, MIRROR_X, 0x00);
+
+    build_tile_forward();
+    build_tile_backward();
+
+    for(i=0; i<6; i++) {
+        for(j=0; j<8; j++) {
+            build_icon(i, j, i*8+j+1, 0x00);
+        }
+    }
+}
+
+/**
+ * @brief Build a menu page turning tile for the forward direction
+ * 
+ */
+void build_tile_forward() {
+    set_tile(27, 37, 0x08, MIRROR_X, 0x00);
+    set_tile(27, 38, 0x07, MIRROR_X, 0x00);
+    set_tile(28, 37, 0x0A, MIRROR_X, 0x00);
+    set_tile(28, 38, 0x09, MIRROR_X, 0x00);
+}
+
+/**
+ * @brief Build a menu page turning tile for the backward direction
+ * 
+ */
+void build_tile_backward() {
+    set_tile(27, 1, 0x07, 0x00, 0x00);
+    set_tile(27, 2, 0x08, 0x00, 0x00);
+    set_tile(28, 1, 0x09, 0x00, 0x00);
+    set_tile(28, 2, 0x0A, 0x00, 0x00);
+}
+
+/**
+ * @brief Build a menu page turning tile for the backward direction
+ * 
+ */
+void build_icon(uint8_t y, uint8_t x, uint8_t puzzle_id, uint8_t col_id) {
+    char buf[4];
+    uint8_t i = 0;
+
+    set_tile(4*y+4, 4*x+5, 0x0C + col_id * 0x10, 0x00, 0x00);
+    set_tile(4*y+4, 4*x+6, 0x0D + col_id * 0x10, 0x00, 0x00);
+    set_tile(4*y+5, 4*x+5, 0x0E + col_id * 0x10, 0x00, 0x00);
+    set_tile(4*y+5, 4*x+6, 0x0F + col_id * 0x10, 0x00, 0x00);
+
+    sprintf(buf, "%02i", puzzle_id);
+    while(buf[i] != 0x00) {
+        set_tile(4*y+6, 4*x+5+i, buf[i] - '0' + (col_id + 1) * 0x10, 0x00, 0x00);
+        i++;
     }
 }
 
@@ -59,7 +105,9 @@ void menu_handle_mouse() {
     static uint8_t mouse_buttons = 0x00;
     uint16_t *mouse_x = (uint16_t *)0x2;
     uint16_t *mouse_y = (uint16_t *)0x4;
-    int8_t btnx, btny;
+    uint8_t scrn_tile_x, scrn_tile_y;
+    uint8_t mod_tile_x, mod_tile_y;
+    uint8_t pos_x, pos_y;
 
     uint8_t idx = 0;
 
@@ -69,54 +117,25 @@ void menu_handle_mouse() {
     asm("sta %v", mouse_buttons);
 
     // get game button position from mouse position
-    btnx = (*mouse_x >> 6) - 1;
-    btny = ((*mouse_y >> 4) - 4) / 3;
+    scrn_tile_x = (*mouse_x >> 4);  // divide by 16, screen tile position
+    scrn_tile_y = (*mouse_y >> 4);
+    mod_tile_x = scrn_tile_x % 4;   // get modulus for division by 4
+    mod_tile_y = scrn_tile_y % 4;
 
-    // release highlight
-    if(btnx != obtnx || btny != obtny) {
-        place_button(obtny, obtnx, 0);
-    }
-
-    if(btnx >= 0 && btnx < 8 && btny >= 0 && btny < 8) {
-        place_button(btny, btnx, 1);
-        obtnx = btnx;
-        obtny = btny;
-    }
-}
-
-void place_button(uint8_t y, uint8_t x, uint8_t highlight) {
-    static const uint8_t offset_x = 4;
-    static const uint8_t offset_y = 4;
-
-    if(highlight == 1) {
-        set_tile(offset_y + y*3, offset_x + x*4, TILE_BTN_CORNER + 4, 0x00, 0);
-        set_tile(offset_y + y*3, offset_x + x*4+1, TILE_BTN_EDGE_UD + 4, 0x00, 0);
-        set_tile(offset_y + y*3, offset_x + x*4+2, TILE_BTN_EDGE_UD + 4, 0x00, 0);
-        set_tile(offset_y + y*3, offset_x + x*4+3, TILE_BTN_CORNER + 4, MIRROR_X, 0);
-        
-        set_tile(offset_y + y*3+1, offset_x + x*4, TILE_BTN_EDGE_LR + 4, 0x00, 0);
-        set_tile(offset_y + y*3+1, offset_x + x*4+1, TILE_BTN_CTR + 4, 0x00, 0);
-        set_tile(offset_y + y*3+1, offset_x + x*4+2, TILE_BTN_CTR + 4, 0x00, 0);
-        set_tile(offset_y + y*3+1, offset_x + x*4+3, TILE_BTN_EDGE_LR + 4, MIRROR_X, 0);
-
-        set_tile(offset_y + y*3+2, offset_x + x*4, TILE_BTN_CORNER + 4, MIRROR_Y, 0);
-        set_tile(offset_y + y*3+2, offset_x + x*4+1, TILE_BTN_EDGE_UD + 4, MIRROR_Y, 0);
-        set_tile(offset_y + y*3+2, offset_x + x*4+2, TILE_BTN_EDGE_UD + 4, MIRROR_Y, 0);
-        set_tile(offset_y + y*3+2, offset_x + x*4+3, TILE_BTN_CORNER + 4, MIRROR_XY, 0);
+    if(mod_tile_y <= 2 && (mod_tile_x == 1 || mod_tile_x == 2)) {
+        pos_x = (scrn_tile_x - 5) >> 2;
+        pos_y = (scrn_tile_y - 4) >> 2;
+        if(pos_y > 5 || pos_x > 7) {
+            // do nothing
+        } else {
+            if(pos_y != obtny || pos_x != obtnx) {
+                build_icon(obtny, obtnx, obtny * 8 + obtnx + 1, 0);
+            }
+            build_icon(pos_y, pos_x, pos_y * 8 + pos_x + 1, 2);
+            obtnx = pos_x;
+            obtny = pos_y;
+        }
     } else {
-        set_tile(offset_y + y*3, offset_x + x*4, TILE_BTN_CORNER, 0x00, 0);
-        set_tile(offset_y + y*3, offset_x + x*4+1, TILE_BTN_EDGE_UD, 0x00, 0);
-        set_tile(offset_y + y*3, offset_x + x*4+2, TILE_BTN_EDGE_UD, 0x00, 0);
-        set_tile(offset_y + y*3, offset_x + x*4+3, TILE_BTN_CORNER, MIRROR_X, 0);
-        
-        set_tile(offset_y + y*3+1, offset_x + x*4, TILE_BTN_EDGE_LR, 0x00, 0);
-        set_tile(offset_y + y*3+1, offset_x + x*4+1, TILE_BTN_CTR, 0x00, 0);
-        set_tile(offset_y + y*3+1, offset_x + x*4+2, TILE_BTN_CTR, 0x00, 0);
-        set_tile(offset_y + y*3+1, offset_x + x*4+3, TILE_BTN_EDGE_LR, MIRROR_X, 0);
-
-        set_tile(offset_y + y*3+2, offset_x + x*4, TILE_BTN_CORNER, MIRROR_Y, 0);
-        set_tile(offset_y + y*3+2, offset_x + x*4+1, TILE_BTN_EDGE_UD, MIRROR_Y, 0);
-        set_tile(offset_y + y*3+2, offset_x + x*4+2, TILE_BTN_EDGE_UD, MIRROR_Y, 0);
-        set_tile(offset_y + y*3+2, offset_x + x*4+3, TILE_BTN_CORNER, MIRROR_XY, 0);
+        build_icon(obtny, obtnx, obtny * 8 + obtnx + 1, 0);
     }
 }
