@@ -90,7 +90,6 @@ void build_tile_backward() {
  * 
  */
 void build_icon(uint8_t y, uint8_t x, uint8_t puzzle_id, uint8_t col_id) {
-    char buf[4];
     uint8_t i = 0;
 
     set_tile(4*y+4, 4*x+5, 0x0C + col_id * 0x10, 0x00, 0x00);
@@ -98,18 +97,15 @@ void build_icon(uint8_t y, uint8_t x, uint8_t puzzle_id, uint8_t col_id) {
     set_tile(4*y+5, 4*x+5, 0x0E + col_id * 0x10, 0x00, 0x00);
     set_tile(4*y+5, 4*x+6, 0x0F + col_id * 0x10, 0x00, 0x00);
 
-    sprintf(buf, "%02i", puzzle_id);
-    while(buf[i] != 0x00) {
-        set_tile(4*y+6, 4*x+5+i, buf[i] - '0' + (col_id + 1) * 0x10, 0x00, 0x00);
-        i++;
-    }
+    set_tile(4*y+6, 4*x+5, (puzzle_id / 10) + (col_id + 1) * 0x10, 0x00, 0x00);
+    set_tile(4*y+6, 4*x+6, (puzzle_id % 10) + (col_id + 1) * 0x10, 0x00, 0x00);
 }
 
 /**
  * @brief Handle mouse operation
  * 
  */
-void menu_handle_mouse() {
+uint8_t menu_handle_mouse() {
     static uint8_t mouse_buttons = 0x00;
     uint16_t *mouse_x = (uint16_t *)0x2;
     uint16_t *mouse_y = (uint16_t *)0x4;
@@ -142,8 +138,21 @@ void menu_handle_mouse() {
             build_icon(pos_y, pos_x, pos_y * 8 + pos_x + 1, 2);
             obtnx = pos_x;
             obtny = pos_y;
+
+            if(mouse_buttons & 1) {
+                while(mouse_buttons != 0x00) {
+                    asm("ldx #2");
+                    asm("jsr $FF6B");
+                    asm("sta %v", mouse_buttons);
+                }
+
+                current_puzzle_id = obtny * 8 + obtnx;
+                return 1;
+            }
         }
     } else {
         build_icon(obtny, obtnx, obtny * 8 + obtnx + 1, 0);
     }
+
+    return 0;
 }

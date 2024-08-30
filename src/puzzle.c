@@ -32,6 +32,8 @@ int8_t ccury = 0;
 int8_t ocurx = 0;
 int8_t ocury = 0;
 uint16_t tiles_incorrect = 0;
+uint16_t data_offset = 0;
+uint8_t current_puzzle_id = 0;
 
 static const uint8_t rambank_puzzle = RAMBANK_PUZZLE;
 
@@ -48,9 +50,11 @@ static const uint8_t rambank_puzzle = RAMBANK_PUZZLE;
  *  |\________ whether cell contains horizontal clue
  *  \_________ whether cell contains vertical clue
  */
-void build_puzzle() {
+void build_puzzle(uint8_t puzzle_id) {
     uint8_t i, j, ctr, c, idx;
-    uint8_t *v = (uint8_t*)0xA000;
+    uint8_t nrknowns = 0;
+    uint8_t nrcells = 0;
+    uint8_t *v;
 
     // reset incorrect tile counter
     tiles_incorrect = 0;
@@ -63,6 +67,13 @@ void build_puzzle() {
     cbm_k_setnam("puzzle.dat");
     cbm_k_setlfs(0, 8, 2);
     cbm_k_load(0, 0xA000);
+
+    data_offset = *(uint16_t*)(0xA000 + (puzzle_id+1) * 2);
+    v = (uint8_t*)(0xA000 + data_offset);
+
+    // sprintf(buf, "%04X", data_offset);
+    // write_debug(buf);
+    // return;
 
     puzzlerows = (*v >> 4) & 0x0F;
     puzzlecols = *v & 0x0F;
@@ -79,6 +90,25 @@ void build_puzzle() {
         offset_y++;
     }
 
+    // print puzzle id
+    set_tile(offset_y + puzzlerows * 2, offset_x + puzzlecols * 2 - 4, 
+             0x4E, MIRROR_X, 0x00);
+    set_tile(offset_y + puzzlerows * 2, offset_x + puzzlecols * 2 - 3, 
+             ((puzzle_id+1) / 10) + 0x44, 0x00, 0x00);
+    set_tile(offset_y + puzzlerows * 2, offset_x + puzzlecols * 2 - 2, 
+             ((puzzle_id+1) % 10) + 0x44, 0x00, 0x00);
+    set_tile(offset_y + puzzlerows * 2, offset_x + puzzlecols * 2 - 1, 
+             0x4E, 0x00, 0x00);
+    set_tile(offset_y + puzzlerows * 2 + 1, offset_x + puzzlecols * 2 - 4, 
+             0x4F, MIRROR_X, 0x00);
+    set_tile(offset_y + puzzlerows * 2 + 1, offset_x + puzzlecols * 2 - 3, 
+             0x54, 0x00, 0x00);
+    set_tile(offset_y + puzzlerows * 2 + 1, offset_x + puzzlecols * 2 - 2, 
+             0x54, 0x00, 0x00);
+    set_tile(offset_y + puzzlerows * 2 + 1, offset_x + puzzlecols * 2 - 1, 
+             0x4F, 0x00, 0x00);
+
+    // parse raw data
     ctr = 0;
     for(i=0; i<puzzlerows; i++) {
         for(j=0; j<puzzlecols; j++) {
@@ -176,40 +206,8 @@ void build_puzzle() {
         }
     }
 
-    ctr = 0x60;
-    // loop over tiles and generate clues
-    for(i=0; i<puzzlerows; i++) {
-        for(j=0; j<puzzlecols; j++) {
-
-            // generate right-clue
-            idx = i * puzzlecols + j;
-            if(puzzledata[idx] & TLDT_HCLUE) {
-                c = 0;
-                idx++;
-                while((puzzledata[idx] & 0x0F) > 0 && idx < puzzlecells) {
-                    c += puzzledata[idx];
-                    idx++;
-                }
-                build_clue_tile_right(ctr, c);
-                set_tile(offset_y + i*2, offset_x + j*2+1, ctr, 0x00, 0);
-                ctr++;
-            }
-
-            // generate down clue
-            idx = i * puzzlecols + j;
-            if(puzzledata[idx] & TLDT_VCLUE) {
-                c = 0;
-                idx += puzzlecols;
-                while((puzzledata[idx] & 0x0F) > 0 && idx < (puzzlecells)) {
-                    c += puzzledata[idx];
-                    idx += puzzlecols;
-                }
-                build_clue_tile_down(ctr, c);
-                set_tile(offset_y + i*2+1, offset_x + j*2, ctr, 0x00, 0);
-                ctr++;
-            }
-        }
-    }
+    puzzle_generate_clues();
+    puzzle_set_revealed_cells();
 }
 
 /**
@@ -297,7 +295,9 @@ void puzzle_handle_mouse() {
     // place highlight
     if(ccurx >= 0 && ccurx < puzzlecols && ccury >=0 && ccury < puzzlerows) {
         idx = ccury * puzzlecols + ccurx;
-        if((puzzledata[idx] & TLDT_LOCKED) == 0) {
+        if(puzzledata[idx] & (TLDT_LOCKED | TLDT_REVEALED)) {
+            return;
+        } else {
             set_puzzle_tile(ccury, ccurx, TILE_HIGHLIGHT);
             ocurx = ccurx;
             ocury = ccury;
@@ -309,7 +309,7 @@ void puzzle_handle_mouse() {
  * @brief Puzzle handle keyboard interaction
  * 
  */
-void puzzle_handle_keyboard() {
+uint8_t puzzle_handle_keyboard() {
     static uint8_t keycode;
     uint8_t idx;
     char buf[5];
@@ -320,7 +320,10 @@ void puzzle_handle_keyboard() {
 
     if(keycode >= 49 && keycode <= 58) { // value between 0-9        
         idx = ccury * puzzlecols + ccurx;
-        if((puzzledata[idx] & TLDT_LOCKED) == 0) {
+
+        if(puzzledata[idx] & (TLDT_LOCKED | TLDT_REVEALED)) {
+            return 0;
+        } else {
             keycode = (keycode - 48) & 0xF;
 
             if((userdata[idx] & 0xF) != (puzzledata[idx] & 0xF) &&
@@ -344,5 +347,89 @@ void puzzle_handle_keyboard() {
                 swap_color_font_tiles(0x10, 0x60);
             }
         }
+
+        return 0;
+    } else if(keycode == 0x1B) {
+        return 1;
     }
+
+    return 0;
+}
+
+/**
+ * @brief Auxiliary function to generate puzzle clues
+ * 
+ */
+void puzzle_generate_clues() {
+    uint8_t c,i,j,idx,ctr;
+
+    ctr = 0x60;
+    // loop over tiles and generate clues
+    for(i=0; i<puzzlerows; i++) {
+        for(j=0; j<puzzlecols; j++) {
+
+            // generate right-clue
+            idx = i * puzzlecols + j;
+            if(puzzledata[idx] & TLDT_HCLUE) {
+                c = 0;
+                idx++;
+                while((puzzledata[idx] & 0x0F) > 0 && idx < puzzlecells) {
+                    c += puzzledata[idx];
+                    idx++;
+                }
+                build_clue_tile_right(ctr, c);
+                set_tile(offset_y + i*2, offset_x + j*2+1, ctr, 0x00, 0);
+                ctr++;
+            }
+
+            // generate down clue
+            idx = i * puzzlecols + j;
+            if(puzzledata[idx] & TLDT_VCLUE) {
+                c = 0;
+                idx += puzzlecols;
+                while((puzzledata[idx] & 0x0F) > 0 && idx < (puzzlecells)) {
+                    c += puzzledata[idx];
+                    idx += puzzlecols;
+                }
+                build_clue_tile_down(ctr, c);
+                set_tile(offset_y + i*2+1, offset_x + j*2, ctr, 0x00, 0);
+                ctr++;
+            }
+        }
+    }
+}
+
+void puzzle_set_revealed_cells() {
+    uint8_t nrcells, nrknowns;
+    uint8_t c,i,j,idx;
+    uint8_t* v;
+
+    // set ram bank to load puzzle data into
+    asm("lda %v", rambank_puzzle);
+    asm("sta 0");
+
+    // here, the pointer is now set to the number of 'knowns'
+    // reset the pointer to the knowns information in the puzzledata and
+    // capture all knowns
+    nrcells = puzzlecols * puzzlerows;
+    v = (uint8_t*)(0xA000 + data_offset) + (nrcells / 2 + nrcells % 2 + 1);
+    nrknowns = *v++;
+    // loop over number of knowns and set puzzledata to known data
+    for(i=0; i<nrknowns; i++) {
+        j = (*v >> 4) & 0x0F;       // row index
+        c= *v & 0x0F;               // column index
+        idx = j * puzzlecols + c;   // array index
+
+        puzzledata[idx] |= TLDT_REVEALED;
+        userdata[idx] = puzzledata[idx] & 0x0F;
+        userdata[idx] |= TLDT_WRITTEN;
+        set_solution_tile(j, c, puzzledata[idx] & 0x0F);
+        set_puzzle_tile(j, c, TILE_REVEALED);
+        v++;
+    }
+    tiles_incorrect -= nrknowns;
+
+    // swap back to default ram bank
+    asm("lda 0");
+    asm("sta 0");
 }

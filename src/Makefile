@@ -13,7 +13,7 @@ TILES.DAT: ../assets/tiles/tiles.png ../assets/scripts/convert_tilemap.py
 MTILES.DAT: ../assets/tiles/menu-tiles.png ../assets/scripts/convert_tilemap.py
 	$(PYTHON) ../assets/scripts/convert_tilemap.py menu-tiles.png MTILES.DAT
 
-PUZZLE.DAT:
+PUZZLE.DAT: ../assets/scripts/create_puzzle.py ../assets/puzzles/001.puz
 	$(PYTHON) ../assets/scripts/create_puzzle.py PUZZLE.DAT
 
 SDIGITS.DAT:

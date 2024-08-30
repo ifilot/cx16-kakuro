@@ -26,6 +26,7 @@
 
 #include "video.h"
 #include "constants.h"
+#include "puzzle.h"
 
 /**
  * @brief Build the puzzle selection  menu
@@ -55,6 +56,6 @@ void build_icon(uint8_t y, uint8_t x, uint8_t puzzle_id, uint8_t col_id);
  * @brief Handle mouse operation
  * 
  */
-void menu_handle_mouse();
+uint8_t menu_handle_mouse();
 
 #endif // _MENU_H

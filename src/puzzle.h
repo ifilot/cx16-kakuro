@@ -38,12 +38,13 @@ extern int8_t ccury;
 extern int8_t ocurx;
 extern int8_t ocury;
 extern uint16_t tiles_incorrect;
+extern uint8_t current_puzzle_id;
 
 /**
  * @brief Build puzzle
  * 
  */
-void build_puzzle();
+void build_puzzle(uint8_t puzzle_id);
 
 /**
  * @brief Show the finalized solution
@@ -79,6 +80,18 @@ void puzzle_handle_mouse();
  * @brief Puzzle handle keyboard interaction
  * 
  */
-void puzzle_handle_keyboard();
+uint8_t puzzle_handle_keyboard();
+
+/**
+ * @brief Auxiliary function to generate puzzle clues
+ * 
+ */
+void puzzle_generate_clues();
+
+/**
+ * @brief Auxiliary function to set revealed cells
+ * 
+ */
+void puzzle_set_revealed_cells();
 
 #endif // _PUZZLE_H

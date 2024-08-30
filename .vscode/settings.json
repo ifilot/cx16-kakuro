@@ -3,6 +3,7 @@
         "constants.h": "c",
         "stdlib.h": "c",
         "menu.h": "c",
-        "video.h": "c"
+        "video.h": "c",
+        "random": "c"
     }
 }

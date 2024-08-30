@@ -30,23 +30,29 @@
 void main() {
     // load assets into memory
     init_screen();
-    load_tiles("mtiles.dat");
-    load_small_digits();
-    clear_screen();
-
-    // build the menu / puzzle
-    //build_puzzle();
-    build_menu();
 
     // enable mouse
     init_mouse();
 
     while(1) {
-        menu_handle_mouse();
-    }
+        clear_screen();
+        load_tiles("mtiles.dat");
+        build_menu();
+        while(1) {
+            if(menu_handle_mouse() == 1) {
+                break;
+            }
+        }
 
-    // while(1) {
-    //     puzzle_handle_mouse();
-    //     puzzle_handle_keyboard();
-    // }
+        clear_screen();
+        load_tiles("tiles.dat");
+        load_small_digits();
+        build_puzzle(current_puzzle_id);
+        while(1) {
+            puzzle_handle_mouse();
+            if(puzzle_handle_keyboard() == 1) {
+                break;
+            }
+        }
+    }
 }

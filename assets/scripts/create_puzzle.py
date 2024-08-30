@@ -19,34 +19,76 @@
 #########################################################################
 
 import numpy as np
+import os
+import struct
+
+ROOT = os.path.dirname(__file__)
 
 def main():
-    vals = [
-        0,0,0,0,0,0,0,0,0,
-        0,0,0,2,7,0,7,9,8,
-        0,9,2,3,0,7,9,8,6,
-        0,2,1,0,6,9,0,2,4,
-        0,8,6,0,1,5,0,5,9,
-        0,7,3,1,2,0,8,0,0,
-        0,0,0,3,4,8,9,0,0,
-        0,1,8,2,0,5,4,1,2,
-        0,4,9,8,0,9,7,3,8
-    ] 
+    data = bytearray()
+    offsets = []
+    offset = 0
+    for i in range(48):
+        puzdata = encode_puzzle('%03i.puz' % (i+1))
+        offsets.append(offset)
+        data += puzdata
+        offset += len(puzdata)
 
-    rows = 9
-    cols = 9
+    print(offsets)
+
+    with open('PUZZLE.DAT', 'wb') as f:
+        f.write(struct.pack('<H', len(offsets)))
+        for o in offsets:
+            f.write(struct.pack('<H', o + (len(offsets) + 1) * 2))
+        f.write(data)
+
+def encode_puzzle(filename):
+    (rows, cols), values, knowns = read_file(os.path.join(ROOT, '..', 'puzzles', filename))
     nrcells = rows * cols
 
+    # store numeric data
     data = bytearray()
     data.append(rows << 4 | cols)
     data.extend([0] * (nrcells // 2 + nrcells % 2))
+
     for i in range(rows):
         for j in range(cols):
             idx = i * cols + j
-            data[idx // 2 + 1] |= (vals[idx] << (4 if (idx % 2 == 0) else 0))
+            data[idx // 2 + 1] |= (values[i,j] << (4 if (idx % 2 == 0) else 0))
 
-    with open('PUZZLE.DAT', 'wb') as f:
-        f.write(data)
+    # append known positions
+    data.append(np.uint8(len(knowns)))
+    for k in knowns:
+        data.append(k[0] << 4 | k[1])
+
+    return data
+
+def read_file(filename):
+    with open(filename, 'r') as f:
+        data = []
+        rawdata = []
+        
+        for line in f.readlines():
+            if line.startswith('#'):
+                continue
+            data.append(line.strip().replace('#','').split())
+            rawdata.append(line.strip().split())
+        
+        # set puzzle dimensions
+        rows = len(data)
+        cols = len(data[0])
+        
+        # convert to numpy arrays
+        values = np.array(data, dtype=np.uint8).reshape(rows, cols)
+        
+        # capture knowns
+        knowns = []
+        for j in range(rows):
+            for i in range(cols):
+                if rawdata[j][i].startswith('#'):
+                    knowns.append((j,i))
+
+    return (rows, cols), values, knowns
 
 if __name__ == '__main__':
     main()
