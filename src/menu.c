@@ -30,6 +30,7 @@ int8_t obtny = 0;
 void build_menu() {
     uint8_t i,j;
     
+    // window background
     for(i=2; i<=27; i++) {
         set_tile(i, 1, 0x04, 0x00, 0x00);
         for(j=2; j<=37; j++) {
@@ -38,6 +39,7 @@ void build_menu() {
         set_tile(i, 38, 0x04, MIRROR_X, 0x00);
     }
 
+    // window title
     set_tile(1, 1, 0x02, 0x00, 0x00);
     for(j=2; j<=37; j++) {
         set_tile(1, j, 0x03, 0x00, 0x00);
@@ -53,6 +55,12 @@ void build_menu() {
             build_icon(i, j, i*8+j+1, 0x00);
         }
     }
+
+    // Kakuro name
+    set_tile(2, 2, 0x1A, 0x00, 0x00);
+    set_tile(2, 3, 0x1B, 0x00, 0x00);
+    set_tile(2, 4, 0x2A, 0x00, 0x00);
+    set_tile(2, 5, 0x2B, 0x00, 0x00);
 }
 
 /**
