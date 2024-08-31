@@ -62,7 +62,11 @@ void build_menu() {
     set_tile(2, 36, 0x2A, 0x00, LAYER0);
     set_tile(2, 37, 0x2B, 0x00, LAYER0);
 
+    // print text
     printtext("Kakuro", 2, 2, 0x12);
+
+    // print version number
+    printtext("v/0.1.0", 28, 28, 0x1C);
 }
 
 /**

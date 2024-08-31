@@ -270,23 +270,33 @@ void puzzle_handle_mouse() {
     tpx = *mouse_x >> 4;
     tpy = *mouse_y >> 4;
 
-    if((mouse_buttons & 1) != 0 && tpy == 1 && tpx == 38) {
-        while(mouse_buttons != 0x00) {
+    if(tpy == 1 && tpx == 38) {
+        set_tile(1, 38, 0x0A, 0x00, LAYER0);
+        if(mouse_buttons & 1) {
+            while(mouse_buttons != 0x00) {
             asm("ldx #2");
             asm("jsr $FF6B");
             asm("sta %v", mouse_buttons);
+            }
+            gamestate |= GAME_QUIT;
         }
-        gamestate |= GAME_QUIT;
+    } else {
+        set_tile(1, 38, 0x08, 0x00, LAYER0);
     }
 
-    if((mouse_buttons & 1) != 0 && tpy == 2 && tpx == 38) {
-        while(mouse_buttons != 0x00) {
-            asm("ldx #2");
-            asm("jsr $FF6B");
-            asm("sta %v", mouse_buttons);
+    if(tpy == 2 && tpx == 38) {
+        set_tile(2, 38, 0x0B, 0x00, LAYER0);
+        if(mouse_buttons & 1) {
+            while(mouse_buttons != 0x00) {
+                asm("ldx #2");
+                asm("jsr $FF6B");
+                asm("sta %v", mouse_buttons);
+            }
+            gamestate ^= GAME_VERIFY;
+            puzzle_color_numbers();
         }
-        gamestate ^= GAME_VERIFY;
-        puzzle_color_numbers();
+    } else {
+        set_tile(2, 38, 0x09, 0x00, LAYER0);
     }
 
     // release highlight
