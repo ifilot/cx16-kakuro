@@ -60,7 +60,7 @@ void clear_screen();
  * @param tile_id background tile index
  * @param layer   which layer to fill
  */
-void fill_layer(uint8_t tile_id, uint8_t layer);
+void fill_layer(uint8_t tile_id, uint8_t layer, uint8_t b2);
 
 /**
  * @brief Set a tile on LAYER1

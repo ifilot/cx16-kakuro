@@ -24,9 +24,10 @@
 // graphics positioning in VRAM
 #define TILEBASE_MENU       0x0000      // 6*16 tiles at 8bpp
 #define TILEBASE_GAME       0x6000      // 2*16 tiles at 8bpp
-#define TILEBASE_FONT       0x8000
-#define MAPBASE0            0xA000      // 64 x 64 tiles
-#define MAPBASE1            0xB000      // 64 x 64 tiles
+#define TILEBASE_CUSTOM     0x8000      // 2*16 tiles at 8bpp
+#define TILEBASE_FONT       0xA000      // 8 * 16 tiles at 1bpp
+#define MAPBASE0            0xC000      // 64 x 64 tiles
+#define MAPBASE1            0xD000      // 64 x 64 tiles
 #define PALETTEBASE         0x1FA20
 #define PALETTEBYTE         0x00
 

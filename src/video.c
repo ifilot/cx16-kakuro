@@ -44,8 +44,8 @@ void init_screen() {
     
     // layer 1
     // On this layer, the values that the user fills in for the tiles are shown
-    VERA.layer1.config   = 0x03 | (1 << 4) | (1 << 6);          // 8 bpp color depth
-    VERA.layer1.tilebase = (TILEBASE_MENU >> 9) & 0xF8 | 0x03;  // 16 x 16 tiles
+    VERA.layer1.config   = (1 << 3) | (1 << 4) | (1 << 6);      // T256C
+    VERA.layer1.tilebase = (TILEBASE_FONT >> 9) | 0x03;         // 16 x 16 tiles
     VERA.layer1.mapbase  = MAPBASE1 >> 9;
 
     // enable both layers
@@ -62,7 +62,7 @@ void init_screen() {
  */
 void set_tilebase_layer0(uint16_t addr) {
     VERA.layer0.config   = 0x03 | (1 << 4) | (1 << 6);      // 8 bpp color depth
-    VERA.layer0.tilebase = (addr >> 9) & 0xF8 | 0x03;       // 16 x 16 tiles
+    VERA.layer0.tilebase = (addr >> 9) | 0x03;              // 16 x 16 tiles
     VERA.layer0.mapbase  = MAPBASE0 >> 9;                   // upper 8 bits
 }
 
@@ -83,8 +83,8 @@ void load_tiles(const char* filename, uint16_t addr) {
  * 
  */
 void clear_screen() {
-    fill_layer(TILE_BACKGROUND, LAYER0);
-    fill_layer(TILE_NONE, LAYER1);
+    fill_layer(TILE_BACKGROUND, LAYER0, PALETTEBYTE);
+    fill_layer(0x00, LAYER1, 0x10);
 }
 
 /**
@@ -93,8 +93,8 @@ void clear_screen() {
  * @param tile_id background tile index
  * @param layer   which layer to fill
  */
-void fill_layer(uint8_t tile_id, uint8_t layer) {
-    uint8_t i,j,k;
+void fill_layer(uint8_t tile_id, uint8_t layer, uint8_t b2) {
+    uint8_t i,j;
     uint32_t map_base_addr;
 
     // set background tiles
@@ -106,16 +106,7 @@ void fill_layer(uint8_t tile_id, uint8_t layer) {
     for (j=0; j<MAPHEIGHT; j++) {
         for (i=0; i<MAPWIDTH; i++) {
             VERA.data0 = tile_id;       // background tile
-            k = PALETTEBYTE;
-            if(j % 2 == 1) {
-                k |= (1 << 3);
-            }
-
-            if(i % 2 == 1) {
-                k |= (1 << 2);
-            }
-
-            VERA.data0 = k;   // palette offset data
+            VERA.data0 = b2;            // palette offset data
         }
     }
 }
@@ -193,26 +184,9 @@ void swap_color_font_tiles(uint8_t col1, uint8_t col2) {
 }
 
 void write_debug(const char* s) {
-    uint8_t v = *s;
     uint8_t x = 0;
     while(*s != '\0') {
-        v = *s;
-        if(v >= '0' && v <= '9') {
-            v -= '0';
-        } else {
-            v = v - 'A' + 10;
-        }
-
-        if(v < 8) {
-            v = v * 2 + 0x20;
-        } else {
-            v = (v - 8) * 2 + 0x40;
-        }
-        set_tile(0, x*2, v, 0x00, 1);
-        set_tile(0, x*2+1, v + 1, 0x00, 1);
-        set_tile(1, x*2, v + 0x10, 0x00, 1);
-        set_tile(1, x*2+1, v + 0x11, 0x00, 1);
-
+        set_tile(0, x, *s, 0x00, LAYER1);
         s++;
         x++;
     }

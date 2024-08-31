@@ -207,7 +207,8 @@ void build_puzzle(uint8_t puzzle_id) {
     }
 
     puzzle_generate_clues();
-    //puzzle_set_revealed_cells();
+    puzzle_set_revealed_cells();
+    write_debug("TEST");
 }
 
 /**
@@ -255,14 +256,14 @@ void set_puzzle_tile(uint8_t y, uint8_t x, uint8_t tile) {
  */
 void set_solution_tile(uint8_t y, uint8_t x, uint8_t tile_value) {
     if(tile_value < 8) {
-        tile_value = tile_value * 2 + 0x20;
+        tile_value = tile_value * 2;
     } else {
-        tile_value = (tile_value - 8) * 2 + 0x40;
+        tile_value = (tile_value - 8) * 2 + 0x80;
     }
-    set_tile(offset_y + y*2, offset_x + x*2, tile_value, 0x00, 1);
-    set_tile(offset_y + y*2, offset_x + x*2+1, tile_value + 1, 0x00, 1);
-    set_tile(offset_y + y*2+1, offset_x + x*2, tile_value + 0x10, 0x00, 1);
-    set_tile(offset_y + y*2+1, offset_x + x*2+1, tile_value + 0x11, 0x00, 1);
+    set_tile(offset_y + y*2, offset_x + x*2, tile_value, 0x00, LAYER1);
+    set_tile(offset_y + y*2, offset_x + x*2+1, tile_value + 1, 0x00, LAYER1);
+    set_tile(offset_y + y*2+1, offset_x + x*2, tile_value + 0x10, 0x00, LAYER1);
+    set_tile(offset_y + y*2+1, offset_x + x*2+1, tile_value + 0x11, 0x00, LAYER1);
 }
 
 /**
@@ -361,9 +362,8 @@ uint8_t puzzle_handle_keyboard() {
  * 
  */
 void puzzle_generate_clues() {
-    uint8_t c,i,j,idx,ctr;
+    uint8_t c,i,j,idx,vrampos = 0;
 
-    ctr = 0x60;
     // loop over tiles and generate clues
     for(i=0; i<puzzlerows; i++) {
         for(j=0; j<puzzlecols; j++) {
@@ -377,9 +377,9 @@ void puzzle_generate_clues() {
                     c += puzzledata[idx];
                     idx++;
                 }
-                build_clue_tile_right(ctr, c);
-                set_tile(offset_y + i*2, offset_x + j*2+1, ctr, 0x00, 0);
-                ctr++;
+                build_clue_tile_right(vrampos, c);
+                set_tile(offset_y + i*2, offset_x + j*2+1, 0x20+vrampos, 0x00, 0);
+                vrampos++;
             }
 
             // generate down clue
@@ -391,9 +391,9 @@ void puzzle_generate_clues() {
                     c += puzzledata[idx];
                     idx += puzzlecols;
                 }
-                build_clue_tile_down(ctr, c);
-                set_tile(offset_y + i*2+1, offset_x + j*2, ctr, 0x00, 0);
-                ctr++;
+                build_clue_tile_down(vrampos, c);
+                set_tile(offset_y + i*2+1, offset_x + j*2, 0x20+vrampos, 0x00, 0);
+                vrampos++;
             }
         }
     }
