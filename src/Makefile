@@ -8,10 +8,10 @@ KAKURO.PRG: *.c *.h *.s TILES.DAT MTILES.DAT PUZZLE.DAT SDIGITS.DAT
 	$(CC) -O -o KAKURO.PRG -t cx16 -C kakuro.cfg *.c *.s
 
 TILES.DAT: ../assets/tiles/tiles.png ../assets/scripts/convert_tilemap.py
-	$(PYTHON) ../assets/scripts/convert_tilemap.py tiles.png TILES.DAT
+	$(PYTHON) ../assets/scripts/convert_tilemap.py tiles.png TILES.DAT 2
 
 MTILES.DAT: ../assets/tiles/menu-tiles.png ../assets/scripts/convert_tilemap.py
-	$(PYTHON) ../assets/scripts/convert_tilemap.py menu-tiles.png MTILES.DAT
+	$(PYTHON) ../assets/scripts/convert_tilemap.py menu-tiles.png MTILES.DAT 6
 
 PUZZLE.DAT: ../assets/scripts/create_puzzle.py ../assets/puzzles/001.puz
 	$(PYTHON) ../assets/scripts/create_puzzle.py PUZZLE.DAT

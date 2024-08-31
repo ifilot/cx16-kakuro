@@ -91,22 +91,22 @@ void build_puzzle(uint8_t puzzle_id) {
     }
 
     // print puzzle id
-    set_tile(offset_y + puzzlerows * 2, offset_x + puzzlecols * 2 - 4, 
-             0x4E, MIRROR_X, 0x00);
-    set_tile(offset_y + puzzlerows * 2, offset_x + puzzlecols * 2 - 3, 
-             ((puzzle_id+1) / 10) + 0x44, 0x00, 0x00);
-    set_tile(offset_y + puzzlerows * 2, offset_x + puzzlecols * 2 - 2, 
-             ((puzzle_id+1) % 10) + 0x44, 0x00, 0x00);
-    set_tile(offset_y + puzzlerows * 2, offset_x + puzzlecols * 2 - 1, 
-             0x4E, 0x00, 0x00);
-    set_tile(offset_y + puzzlerows * 2 + 1, offset_x + puzzlecols * 2 - 4, 
-             0x4F, MIRROR_X, 0x00);
-    set_tile(offset_y + puzzlerows * 2 + 1, offset_x + puzzlecols * 2 - 3, 
-             0x54, 0x00, 0x00);
-    set_tile(offset_y + puzzlerows * 2 + 1, offset_x + puzzlecols * 2 - 2, 
-             0x54, 0x00, 0x00);
-    set_tile(offset_y + puzzlerows * 2 + 1, offset_x + puzzlecols * 2 - 1, 
-             0x4F, 0x00, 0x00);
+    // set_tile(offset_y + puzzlerows * 2, offset_x + puzzlecols * 2 - 4, 
+    //          0x4E, MIRROR_X, 0x00);
+    // set_tile(offset_y + puzzlerows * 2, offset_x + puzzlecols * 2 - 3, 
+    //          ((puzzle_id+1) / 10) + 0x44, 0x00, 0x00);
+    // set_tile(offset_y + puzzlerows * 2, offset_x + puzzlecols * 2 - 2, 
+    //          ((puzzle_id+1) % 10) + 0x44, 0x00, 0x00);
+    // set_tile(offset_y + puzzlerows * 2, offset_x + puzzlecols * 2 - 1, 
+    //          0x4E, 0x00, 0x00);
+    // set_tile(offset_y + puzzlerows * 2 + 1, offset_x + puzzlecols * 2 - 4, 
+    //          0x4F, MIRROR_X, 0x00);
+    // set_tile(offset_y + puzzlerows * 2 + 1, offset_x + puzzlecols * 2 - 3, 
+    //          0x54, 0x00, 0x00);
+    // set_tile(offset_y + puzzlerows * 2 + 1, offset_x + puzzlecols * 2 - 2, 
+    //          0x54, 0x00, 0x00);
+    // set_tile(offset_y + puzzlerows * 2 + 1, offset_x + puzzlecols * 2 - 1, 
+    //          0x4F, 0x00, 0x00);
 
     // parse raw data
     ctr = 0;
@@ -207,7 +207,7 @@ void build_puzzle(uint8_t puzzle_id) {
     }
 
     puzzle_generate_clues();
-    puzzle_set_revealed_cells();
+    //puzzle_set_revealed_cells();
 }
 
 /**

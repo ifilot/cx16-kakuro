@@ -34,19 +34,25 @@ void main() {
     // enable mouse
     init_mouse();
 
+    // load into VERA
+    load_tiles("mtiles.dat", TILEBASE_MENU);
+    load_tiles("tiles.dat", TILEBASE_GAME);
+
+    // load assets
+    load_small_digits();
+
     while(1) {
-        clear_screen();
-        load_tiles("mtiles.dat");
-        build_menu();
-        while(1) {
-            if(menu_handle_mouse() == 1) {
-                break;
-            }
-        }
+        // clear_screen();
+        // set_tilebase_layer0(TILEBASE_MENU);
+        // build_menu();
+        // while(1) {
+        //     if(menu_handle_mouse() == 1) {
+        //         break;
+        //     }
+        // }
 
         clear_screen();
-        load_tiles("tiles.dat");
-        load_small_digits();
+        set_tilebase_layer0(TILEBASE_GAME);
         build_puzzle(current_puzzle_id);
         while(1) {
             puzzle_handle_mouse();

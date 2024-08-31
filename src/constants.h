@@ -22,8 +22,9 @@
 #define _CONSTANTS_H
 
 // graphics positioning in VRAM
-#define TILEBASE            0x0000      // 6*16 tiles at 8bpp
-#define FONTBASE            0x6000      // 4*16 tiles at 8bpp
+#define TILEBASE_MENU       0x0000      // 6*16 tiles at 8bpp
+#define TILEBASE_GAME       0x6000      // 2*16 tiles at 8bpp
+#define TILEBASE_FONT       0x8000
 #define MAPBASE0            0xA000      // 64 x 64 tiles
 #define MAPBASE1            0xB000      // 64 x 64 tiles
 #define PALETTEBASE         0x1FA20
@@ -57,6 +58,10 @@
 #define TLDT_LOCKED         (1 << 5)
 #define TLDT_HCLUE          (1 << 6)
 #define TLDT_VCLUE          (1 << 7)
+
+// layers
+#define LAYER0              0
+#define LAYER1              1
 
 // userdata settings
 #define TLDT_WRITTEN        (1 << 4)

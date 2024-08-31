@@ -32,35 +32,35 @@ void build_menu() {
     
     // window background
     for(i=2; i<=27; i++) {
-        set_tile(i, 1, 0x04, 0x00, 0x00);
+        set_tile(i, 1, 0x04, 0x00, LAYER0);
         for(j=2; j<=37; j++) {
-            set_tile(i, j, 0x06, 0x00, 0x00);
+            set_tile(i, j, 0x06, 0x00, LAYER0);
         }
-        set_tile(i, 38, 0x04, MIRROR_X, 0x00);
+        set_tile(i, 38, 0x04, MIRROR_X, LAYER0);
     }
 
     // window title
-    set_tile(1, 1, 0x02, 0x00, 0x00);
+    set_tile(1, 1, 0x02, 0x00, LAYER0);
     for(j=2; j<=37; j++) {
-        set_tile(1, j, 0x03, 0x00, 0x00);
-        set_tile(28, j, 0x05, 0x00, 0x00);
+        set_tile(1, j, 0x03, 0x00, LAYER0);
+        set_tile(28, j, 0x05, 0x00, LAYER0);
     }
-    set_tile(1, 38, 0x02, MIRROR_X, 0x00);
+    set_tile(1, 38, 0x02, MIRROR_X, LAYER0);
 
     build_tile_forward();
     build_tile_backward();
 
     for(i=0; i<6; i++) {
         for(j=0; j<8; j++) {
-            build_icon(i, j, i*8+j+1, 0x00);
+            build_icon(i, j, i*8+j+1, LAYER0);
         }
     }
 
     // Kakuro name
-    set_tile(2, 2, 0x1A, 0x00, 0x00);
-    set_tile(2, 3, 0x1B, 0x00, 0x00);
-    set_tile(2, 4, 0x2A, 0x00, 0x00);
-    set_tile(2, 5, 0x2B, 0x00, 0x00);
+    set_tile(2, 2, 0x1A, 0x00, LAYER0);
+    set_tile(2, 3, 0x1B, 0x00, LAYER0);
+    set_tile(2, 4, 0x2A, 0x00, LAYER0);
+    set_tile(2, 5, 0x2B, 0x00, LAYER0);
 }
 
 /**
@@ -68,10 +68,10 @@ void build_menu() {
  * 
  */
 void build_tile_forward() {
-    set_tile(27, 37, 0x08, MIRROR_X, 0x00);
-    set_tile(27, 38, 0x07, MIRROR_X, 0x00);
-    set_tile(28, 37, 0x0A, MIRROR_X, 0x00);
-    set_tile(28, 38, 0x09, MIRROR_X, 0x00);
+    set_tile(27, 37, 0x08, MIRROR_X, LAYER0);
+    set_tile(27, 38, 0x07, MIRROR_X, LAYER0);
+    set_tile(28, 37, 0x0A, MIRROR_X, LAYER0);
+    set_tile(28, 38, 0x09, MIRROR_X, LAYER0);
 }
 
 /**
@@ -79,10 +79,10 @@ void build_tile_forward() {
  * 
  */
 void build_tile_backward() {
-    set_tile(27, 1, 0x07, 0x00, 0x00);
-    set_tile(27, 2, 0x08, 0x00, 0x00);
-    set_tile(28, 1, 0x09, 0x00, 0x00);
-    set_tile(28, 2, 0x0A, 0x00, 0x00);
+    set_tile(27, 1, 0x07, 0x00, LAYER0);
+    set_tile(27, 2, 0x08, 0x00, LAYER0);
+    set_tile(28, 1, 0x09, 0x00, LAYER0);
+    set_tile(28, 2, 0x0A, 0x00, LAYER0);
 }
 
 /**
@@ -92,13 +92,13 @@ void build_tile_backward() {
 void build_icon(uint8_t y, uint8_t x, uint8_t puzzle_id, uint8_t col_id) {
     uint8_t i = 0;
 
-    set_tile(4*y+4, 4*x+5, 0x0C + col_id * 0x10, 0x00, 0x00);
-    set_tile(4*y+4, 4*x+6, 0x0D + col_id * 0x10, 0x00, 0x00);
-    set_tile(4*y+5, 4*x+5, 0x0E + col_id * 0x10, 0x00, 0x00);
-    set_tile(4*y+5, 4*x+6, 0x0F + col_id * 0x10, 0x00, 0x00);
+    set_tile(4*y+4, 4*x+5, 0x0C + col_id * 0x10, 0x00, LAYER0);
+    set_tile(4*y+4, 4*x+6, 0x0D + col_id * 0x10, 0x00, LAYER0);
+    set_tile(4*y+5, 4*x+5, 0x0E + col_id * 0x10, 0x00, LAYER0);
+    set_tile(4*y+5, 4*x+6, 0x0F + col_id * 0x10, 0x00, LAYER0);
 
-    set_tile(4*y+6, 4*x+5, (puzzle_id / 10) + (col_id + 1) * 0x10, 0x00, 0x00);
-    set_tile(4*y+6, 4*x+6, (puzzle_id % 10) + (col_id + 1) * 0x10, 0x00, 0x00);
+    set_tile(4*y+6, 4*x+5, (puzzle_id / 10) + (col_id + 1) * 0x10, 0x00, LAYER0);
+    set_tile(4*y+6, 4*x+6, (puzzle_id % 10) + (col_id + 1) * 0x10, 0x00, LAYER0);
 }
 
 /**

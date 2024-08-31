@@ -32,61 +32,19 @@ def main():
     palette matching any pixel and store the tiles in a color-encoded data file
     based on the palette.
     """
-    # grab the colors
-    palette = get_color_palette()
     
     # encode tiles based on the color palette
-    img = PIL.Image.open(os.path.join(ROOT, '..', 'tiles', sys.argv[1]))
-    data = build_tiles(img, palette, int(sys.argv[3]))
+    img = PIL.Image.open(os.path.join(ROOT, '..', 'fonts', 'reffspixelfont_spritesheet_0_to_1023.png'))   
+    canvas = PIL.Image.new(mode="RGBA", size=(16*16, 16*6))
     
-    with open(sys.argv[2], 'wb') as f:
-        f.write(data)
-
-def build_tiles(img, palette, rows=6, columns=16):
-    """
-    Grab the tiles from an image file and compare the colors with a palette.
-    Pick the best matching color and store the tilemap using the color-encoding
-    as supplied by the palette.
-    """
-    data = bytearray()
-    
-    for i in range(rows):      # loop over rows
-        for j in range(columns):  # loop over columns
-            
-            # loop over pixels
-            for y in range(16):
-                for x in range(16):
-                    col = img.getpixel(((j*16+x),(i*16+y)))
-                    idx = find_closest_color(col, palette)
-                    data.extend(idx)
-    
-    return data
-
-def find_closest_color(col, palette):
-    """
-    Find closest color match from palette given a pixel color
-    """
-    # if transparent, return 0
-    if col[3] < 50:
-        return np.uint8(0x00)
-    
-    distances = np.linalg.norm(palette[1:,:] - col[0:3], axis=1)
-    return np.uint8(np.argmin(distances)+1)
-
-def get_color_palette():
-    """
-    Build the color palette from the CX16 palette png file
-    """
-    file = os.path.join(ROOT, '..', 'palette', 'cx16palette.png')
-    img = PIL.Image.open(file)
-    
-    colors = []
-    for i in range(16):
+    for i in range(6):
         for j in range(16):
-            col = img.getpixel((j*64+32,i*64+32))
-            colors.append(col)
+            idx = i * 16 + j
+            x = idx % 32
+            y = idx // 32
+            canvas.paste(img.crop((x*17,(y+1)*17,x*17+16,(y+1)*17+16)), (j*16,i*16))
     
-    return np.array(colors, np.uint8)
+    canvas.save(os.path.join(ROOT, '..', 'fonts', 'fontmap.png'))
                     
 if __name__ == '__main__':
     main()

@@ -21,6 +21,14 @@
 #include "video.h"
 
 /**
+ * MEMORY MAP
+ * ==========
+ * 0x0000 - 0x6000 - Tileset for menu
+ * 0x6000 - 0x8000 - Tileset for game
+ * 
+ */
+
+/**
  * @brief Initialize screen
  * 
  */
@@ -32,14 +40,12 @@ void init_screen() {
     // layer 0
     // This layer contains the game background and the puzzle background; this
     // includes all 'static' squares
-    VERA.layer0.config   = 0x03 | (1 << 4) | (1 << 6);  // 8 bpp color depth
-    VERA.layer0.tilebase = (TILEBASE >> 11) | 0x03;     // 16 x 16 tiles
-    VERA.layer0.mapbase  = MAPBASE0 >> 9;               // upper 8 bits
+    set_tilebase_layer0(TILEBASE_MENU);
     
     // layer 1
     // On this layer, the values that the user fills in for the tiles are shown
-    VERA.layer1.config   = 0x03 | (1 << 4) | (1 << 6);  // 8 bpp color depth
-    VERA.layer1.tilebase = (TILEBASE >> 11) | 0x03;     // 16 x 16 tiles
+    VERA.layer1.config   = 0x03 | (1 << 4) | (1 << 6);          // 8 bpp color depth
+    VERA.layer1.tilebase = (TILEBASE_MENU >> 9) & 0xF8 | 0x03;  // 16 x 16 tiles
     VERA.layer1.mapbase  = MAPBASE1 >> 9;
 
     // enable both layers
@@ -50,17 +56,24 @@ void init_screen() {
 }
 
 /**
- * @brief Load the tiles from file into memory
+ * @brief Set the tilebase offset for layer0
+ * 
+ * @param addr VRAM address
+ */
+void set_tilebase_layer0(uint16_t addr) {
+    VERA.layer0.config   = 0x03 | (1 << 4) | (1 << 6);      // 8 bpp color depth
+    VERA.layer0.tilebase = (addr >> 9) & 0xF8 | 0x03;       // 16 x 16 tiles
+    VERA.layer0.mapbase  = MAPBASE0 >> 9;                   // upper 8 bits
+}
+
+/**
+ * @brief Load the tiles from file into video memory
  * 
  */
-void load_tiles(const char* filename) {
-    // location of tile set
-    uint32_t addr = 0x0000;
-
-    // load tiles into memory
+void load_tiles(const char* filename, uint16_t addr) {
     cbm_k_setnam(filename);
     cbm_k_setlfs(0, 8, 2);
-    cbm_k_load(2, TILEBASE);
+    cbm_k_load(2, addr);
 }
 
 /**
@@ -70,8 +83,8 @@ void load_tiles(const char* filename) {
  * 
  */
 void clear_screen() {
-    fill_layer(TILE_BACKGROUND, 0);
-    fill_layer(TILE_NONE, 1);
+    fill_layer(TILE_BACKGROUND, LAYER0);
+    fill_layer(TILE_NONE, LAYER1);
 }
 
 /**
@@ -149,7 +162,7 @@ void swap_color_font_tiles(uint8_t col1, uint8_t col2) {
             end = (uint8_t*)(BANKED_RAM + 16*16*2);
         }
 
-        vera_addr = TILEBASE + (i+2) * 16 * 16 * 16;
+        vera_addr = TILEBASE_FONT + (i+2) * 16 * 16 * 16;
         VERA.address = vera_addr;
         VERA.address_hi = vera_addr >> 16;
         VERA.address_hi |= 0b10000;
@@ -163,7 +176,7 @@ void swap_color_font_tiles(uint8_t col1, uint8_t col2) {
             ptr++;
         }
 
-        vera_addr = TILEBASE + (i+2) * 16 * 16 * 16;
+        vera_addr = TILEBASE_FONT + (i+2) * 16 * 16 * 16;
         VERA.address = vera_addr;
         VERA.address_hi = vera_addr >> 16;
         VERA.address_hi |= 0b10000;
