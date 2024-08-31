@@ -41,7 +41,7 @@ def main():
                 for k,x in enumerate(range(0,8)):
                     px = img.getpixel((j*16+x, i*16+y))
                     if px[3] > 150:
-                        b |= (1 << k)
+                        b |= (1 << (8-k-1))
                 data.append(b)
 
                 # last 8 columns
@@ -49,7 +49,7 @@ def main():
                 for k,x in enumerate(range(8,16)):
                     px = img.getpixel((j*16+x, i*16+y))
                     if px[3] > 150:
-                        b |= (1 << k)                
+                        b |= (1 << (8-k-1))                
                 data.append(b)
 
     with open(sys.argv[1], 'wb') as f:

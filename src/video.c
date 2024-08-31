@@ -84,7 +84,7 @@ void load_tiles(const char* filename, uint16_t addr) {
  */
 void clear_screen() {
     fill_layer(TILE_BACKGROUND, LAYER0, PALETTEBYTE);
-    fill_layer(0x00, LAYER1, 0x10);
+    fill_layer(0x20, LAYER1, 0x00);
 }
 
 /**
@@ -186,8 +186,38 @@ void swap_color_font_tiles(uint8_t col1, uint8_t col2) {
 void write_debug(const char* s) {
     uint8_t x = 0;
     while(*s != '\0') {
-        set_tile(0, x, *s, 0x00, LAYER1);
+        set_tile(1, x+1, *s, 0x10, LAYER1);
         s++;
         x++;
+    }
+}
+
+/**
+ * @brief Print text to the screen
+ * 
+ * @param s string
+ * @param y y-position
+ * @param x x-position
+ * @param col color id
+ */
+void printtext(const char* s, uint8_t y, uint8_t x, uint8_t col) {
+    while(*s != '\0') {
+        set_tile(y, x, *s, col, LAYER1);
+        s++;
+        x++;
+    }
+}
+
+/**
+ * @brief Print spaces to the screen
+ * 
+ * @param nrspaces number of spaces
+ * @param y y-position
+ * @param x x-position
+ */
+void printspaces(uint8_t nrspaces, uint8_t y, uint8_t x) {
+    uint8_t i = 0;
+    for(i=0; i<nrspaces; i++) {
+        set_tile(y, x+i, 0x20, 0x00, LAYER1);
     }
 }

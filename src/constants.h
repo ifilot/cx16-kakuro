@@ -75,4 +75,9 @@
 // banked memory position
 #define BANKED_RAM          0xA000
 
+// game states
+#define GAME_PLAY           0x00
+#define GAME_QUIT           (1 << 1)
+#define GAME_VERIFY         (1 << 2)
+
 #endif // _CONSTANTS_H

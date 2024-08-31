@@ -19,7 +19,7 @@ PUZZLE.DAT: ../assets/scripts/create_puzzle.py ../assets/puzzles/001.puz
 SDIGITS.DAT:
 	$(PYTHON) ../assets/scripts/convert_small_digits.py SDIGITS.DAT
 
-FONTMAP.DAT: ../assets/scripts/create_fontmap.py
+FONTMAP.DAT: ../assets/tiles/font-tiles.png ../assets/scripts/create_fontmap.py
 	$(PYTHON) ../assets/scripts/create_fontmap.py FONTMAP.DAT
 
 run: KAKURO.PRG

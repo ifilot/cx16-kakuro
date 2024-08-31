@@ -39,6 +39,7 @@ extern int8_t ocurx;
 extern int8_t ocury;
 extern uint16_t tiles_incorrect;
 extern uint8_t current_puzzle_id;
+extern uint8_t gamestate;
 
 /**
  * @brief Build puzzle
@@ -67,8 +68,9 @@ void set_puzzle_tile(uint8_t y, uint8_t x, uint8_t tile);
  * @param y             y-position in puzzle
  * @param x             x-position in puzzle
  * @param tile_value    tile_value
+ * @param col_id        color value
  */
-void set_solution_tile(uint8_t y, uint8_t x, uint8_t tile_value);
+void set_solution_tile(uint8_t y, uint8_t x, uint8_t tile_value, uint8_t col_id);
 
 /**
  * @brief Handle mouse operation
@@ -80,7 +82,7 @@ void puzzle_handle_mouse();
  * @brief Puzzle handle keyboard interaction
  * 
  */
-uint8_t puzzle_handle_keyboard();
+void puzzle_handle_keyboard();
 
 /**
  * @brief Auxiliary function to generate puzzle clues
@@ -93,5 +95,11 @@ void puzzle_generate_clues();
  * 
  */
 void puzzle_set_revealed_cells();
+
+/**
+ * @brief Color numbers based on correctness
+ * 
+ */
+void puzzle_color_numbers();
 
 #endif // _PUZZLE_H

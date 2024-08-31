@@ -34,6 +34,7 @@ int8_t ocury = 0;
 uint16_t tiles_incorrect = 0;
 uint16_t data_offset = 0;
 uint8_t current_puzzle_id = 0;
+uint8_t gamestate = 0;
 
 static const uint8_t rambank_puzzle = RAMBANK_PUZZLE;
 
@@ -71,10 +72,6 @@ void build_puzzle(uint8_t puzzle_id) {
     data_offset = *(uint16_t*)(0xA000 + (puzzle_id+1) * 2);
     v = (uint8_t*)(0xA000 + data_offset);
 
-    // sprintf(buf, "%04X", data_offset);
-    // write_debug(buf);
-    // return;
-
     puzzlerows = (*v >> 4) & 0x0F;
     puzzlecols = *v & 0x0F;
     puzzlecells = puzzlerows * puzzlecols;
@@ -89,24 +86,6 @@ void build_puzzle(uint8_t puzzle_id) {
         offset_x++;
         offset_y++;
     }
-
-    // print puzzle id
-    // set_tile(offset_y + puzzlerows * 2, offset_x + puzzlecols * 2 - 4, 
-    //          0x4E, MIRROR_X, 0x00);
-    // set_tile(offset_y + puzzlerows * 2, offset_x + puzzlecols * 2 - 3, 
-    //          ((puzzle_id+1) / 10) + 0x44, 0x00, 0x00);
-    // set_tile(offset_y + puzzlerows * 2, offset_x + puzzlecols * 2 - 2, 
-    //          ((puzzle_id+1) % 10) + 0x44, 0x00, 0x00);
-    // set_tile(offset_y + puzzlerows * 2, offset_x + puzzlecols * 2 - 1, 
-    //          0x4E, 0x00, 0x00);
-    // set_tile(offset_y + puzzlerows * 2 + 1, offset_x + puzzlecols * 2 - 4, 
-    //          0x4F, MIRROR_X, 0x00);
-    // set_tile(offset_y + puzzlerows * 2 + 1, offset_x + puzzlecols * 2 - 3, 
-    //          0x54, 0x00, 0x00);
-    // set_tile(offset_y + puzzlerows * 2 + 1, offset_x + puzzlecols * 2 - 2, 
-    //          0x54, 0x00, 0x00);
-    // set_tile(offset_y + puzzlerows * 2 + 1, offset_x + puzzlecols * 2 - 1, 
-    //          0x4F, 0x00, 0x00);
 
     // parse raw data
     ctr = 0;
@@ -205,10 +184,12 @@ void build_puzzle(uint8_t puzzle_id) {
             }
         }
     }
-
     puzzle_generate_clues();
     puzzle_set_revealed_cells();
-    write_debug("TEST");
+
+    // build icons
+    set_tile(1, 38, 0x08, 0x00, LAYER0);
+    set_tile(2, 38, 0x09, 0x00, LAYER0);
 }
 
 /**
@@ -227,7 +208,7 @@ void show_solution() {
             idx = i * puzzlecols + j;
             if((puzzledata[idx] & TLDT_LOCKED) == 0) {
                 c = puzzledata[idx] & 0x0F;
-                set_solution_tile(i, j, c);
+                set_solution_tile(i, j, c, 0x12);
             }
         }
     }
@@ -254,16 +235,16 @@ void set_puzzle_tile(uint8_t y, uint8_t x, uint8_t tile) {
  * @param x             x-position in puzzle
  * @param tile_value    tile_value
  */
-void set_solution_tile(uint8_t y, uint8_t x, uint8_t tile_value) {
+void set_solution_tile(uint8_t y, uint8_t x, uint8_t tile_value, uint8_t col) {
     if(tile_value < 8) {
         tile_value = tile_value * 2;
     } else {
         tile_value = (tile_value - 8) * 2 + 0x80;
     }
-    set_tile(offset_y + y*2, offset_x + x*2, tile_value, 0x00, LAYER1);
-    set_tile(offset_y + y*2, offset_x + x*2+1, tile_value + 1, 0x00, LAYER1);
-    set_tile(offset_y + y*2+1, offset_x + x*2, tile_value + 0x10, 0x00, LAYER1);
-    set_tile(offset_y + y*2+1, offset_x + x*2+1, tile_value + 0x11, 0x00, LAYER1);
+    set_tile(offset_y + y*2, offset_x + x*2, tile_value, col, LAYER1);
+    set_tile(offset_y + y*2, offset_x + x*2+1, tile_value + 1, col, LAYER1);
+    set_tile(offset_y + y*2+1, offset_x + x*2, tile_value + 0x10, col, LAYER1);
+    set_tile(offset_y + y*2+1, offset_x + x*2+1, tile_value + 0x11, col, LAYER1);
 }
 
 /**
@@ -272,6 +253,8 @@ void set_solution_tile(uint8_t y, uint8_t x, uint8_t tile_value) {
  */
 void puzzle_handle_mouse() {
     static uint8_t mouse_buttons = 0x00;
+    uint8_t tpx = 0;
+    uint8_t tpy = 0;
     uint16_t *mouse_x = (uint16_t *)0x2;
     uint16_t *mouse_y = (uint16_t *)0x4;
     uint8_t idx = 0;
@@ -284,6 +267,27 @@ void puzzle_handle_mouse() {
     // get board position from mouse position
     ccurx = ((*mouse_x >> 4) - offset_x) >> 1;
     ccury = ((*mouse_y >> 4) - offset_y) >> 1;
+    tpx = *mouse_x >> 4;
+    tpy = *mouse_y >> 4;
+
+    if((mouse_buttons & 1) != 0 && tpy == 1 && tpx == 38) {
+        while(mouse_buttons != 0x00) {
+            asm("ldx #2");
+            asm("jsr $FF6B");
+            asm("sta %v", mouse_buttons);
+        }
+        gamestate |= GAME_QUIT;
+    }
+
+    if((mouse_buttons & 1) != 0 && tpy == 2 && tpx == 38) {
+        while(mouse_buttons != 0x00) {
+            asm("ldx #2");
+            asm("jsr $FF6B");
+            asm("sta %v", mouse_buttons);
+        }
+        gamestate ^= GAME_VERIFY;
+        puzzle_color_numbers();
+    }
 
     // release highlight
     if(ccurx != ocurx || ccury != ocury) {
@@ -310,22 +314,21 @@ void puzzle_handle_mouse() {
  * @brief Puzzle handle keyboard interaction
  * 
  */
-uint8_t puzzle_handle_keyboard() {
+void puzzle_handle_keyboard() {
     static uint8_t keycode;
     uint8_t idx;
-    char buf[5];
 
     // grab keycode
     asm("jsr $FFE4");
     asm("sta %v", keycode);
 
-    if(keycode >= 49 && keycode <= 58) { // value between 0-9        
+    if(keycode >= '1' && keycode <= '9') { // value between 0-9        
         idx = ccury * puzzlecols + ccurx;
 
         if(puzzledata[idx] & (TLDT_LOCKED | TLDT_REVEALED)) {
-            return 0;
+            return;
         } else {
-            keycode = (keycode - 48) & 0xF;
+            keycode = (keycode - '0') & 0xF;
 
             if((userdata[idx] & 0xF) != (puzzledata[idx] & 0xF) &&
                (puzzledata[idx] & 0xF) == keycode) {
@@ -337,24 +340,36 @@ uint8_t puzzle_handle_keyboard() {
                 tiles_incorrect++;
             }
 
-            userdata[idx] = keycode;
-            set_solution_tile(ccury, ccurx, userdata[idx]);
+            userdata[idx] = keycode - '0';
+            if(gamestate & GAME_VERIFY) {
+                if((puzzledata[idx] & 0x0F) == (userdata[idx] & 0x0F)) {
+                    set_solution_tile(ccury, ccurx, userdata[idx] & 0x0F, 0x5F);
+                } else {
+                    set_solution_tile(ccury, ccurx, userdata[idx] & 0x0F, 0x36);
+                }
+            } else {
+                set_solution_tile(ccury, ccurx, userdata[idx] & 0x0F, 0x12);
+            }
             userdata[idx] |= TLDT_WRITTEN;
-
-            sprintf(buf, "%04X", tiles_incorrect);
-            write_debug(buf);
 
             if(tiles_incorrect == 0) {
                 swap_color_font_tiles(0x10, 0x60);
             }
         }
-
-        return 0;
     } else if(keycode == 0x1B) {
-        return 1;
+        printtext("Are you sure you want to quit?", 2, 2, 0x12);
+        printtext("YES (Y) / NO (N)", 3, 2, 0x12);
+        while(keycode != 'Y' && keycode != 'N') {
+            asm("jsr $FFE4");
+            asm("sta %v", keycode);
+        }
+        if(keycode == 'Y') {
+            gamestate |= GAME_QUIT;
+        } else {
+            printspaces(30, 2, 2);
+            printspaces(16, 3, 2);
+        }
     }
-
-    return 0;
 }
 
 /**
@@ -423,7 +438,7 @@ void puzzle_set_revealed_cells() {
         puzzledata[idx] |= TLDT_REVEALED;
         userdata[idx] = puzzledata[idx] & 0x0F;
         userdata[idx] |= TLDT_WRITTEN;
-        set_solution_tile(j, c, puzzledata[idx] & 0x0F);
+        set_solution_tile(j, c, puzzledata[idx] & 0x0F, 0x12);
         set_puzzle_tile(j, c, TILE_REVEALED);
         v++;
     }
@@ -432,4 +447,30 @@ void puzzle_set_revealed_cells() {
     // swap back to default ram bank
     asm("lda 0");
     asm("sta 0");
+}
+
+/**
+ * @brief Color numbers in cells based on whether auto-verification has been
+ *        turned on or not.
+ */
+void puzzle_color_numbers() {
+    uint8_t i,j;
+    uint8_t idx;
+    // loop over tiles and generate clues
+    for(i=0; i<puzzlerows; i++) {
+        for(j=0; j<puzzlecols; j++) {
+            idx = i * puzzlecols + j;
+            if(userdata[idx] & TLDT_WRITTEN ) {
+                if(gamestate & GAME_VERIFY) {
+                    if((puzzledata[idx] & 0x0F) == (userdata[idx] & 0x0F)) {
+                        set_solution_tile(i, j, userdata[idx] & 0x0F, 0x5F);
+                    } else {
+                        set_solution_tile(i, j, userdata[idx] & 0x0F, 0x36);
+                    }
+                } else {
+                    set_solution_tile(i, j, userdata[idx] & 0x0F, 0x12);
+                }
+            }
+        }
+    }
 }

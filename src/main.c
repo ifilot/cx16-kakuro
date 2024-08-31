@@ -43,23 +43,22 @@ void main() {
     load_small_digits();
 
     while(1) {
-        // clear_screen();
-        // set_tilebase_layer0(TILEBASE_MENU);
-        // build_menu();
-        // while(1) {
-        //     if(menu_handle_mouse() == 1) {
-        //         break;
-        //     }
-        // }
+        clear_screen();
+        set_tilebase_layer0(TILEBASE_MENU);
+        build_menu();
+        while(1) {
+            if(menu_handle_mouse() == 1) {
+                break;
+            }
+        }
 
         clear_screen();
         set_tilebase_layer0(TILEBASE_GAME);
         build_puzzle(current_puzzle_id);
-        while(1) {
+        gamestate = GAME_PLAY;
+        while(!(gamestate & GAME_QUIT)) {
             puzzle_handle_mouse();
-            if(puzzle_handle_keyboard() == 1) {
-                break;
-            }
+            puzzle_handle_keyboard();
         }
     }
 }

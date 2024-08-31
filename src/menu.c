@@ -57,10 +57,12 @@ void build_menu() {
     }
 
     // Kakuro name
-    set_tile(2, 2, 0x1A, 0x00, LAYER0);
-    set_tile(2, 3, 0x1B, 0x00, LAYER0);
-    set_tile(2, 4, 0x2A, 0x00, LAYER0);
-    set_tile(2, 5, 0x2B, 0x00, LAYER0);
+    set_tile(2, 34, 0x1A, 0x00, LAYER0);
+    set_tile(2, 35, 0x1B, 0x00, LAYER0);
+    set_tile(2, 36, 0x2A, 0x00, LAYER0);
+    set_tile(2, 37, 0x2B, 0x00, LAYER0);
+
+    printtext("Kakuro", 2, 2, 0x12);
 }
 
 /**

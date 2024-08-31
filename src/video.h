@@ -23,6 +23,7 @@
 
 #include <cx16.h>
 #include <cbm.h>
+#include <ascii_charmap.h>
 #include <stdint.h>
 
 #include "constants.h"
@@ -80,6 +81,30 @@ void set_tile(uint8_t y, uint8_t x, uint8_t tile_id, uint8_t tile_data, uint8_t 
  */
 void swap_color_font_tiles(uint8_t col1, uint8_t col2);
 
+/**
+ * @brief Write debug message to screen
+ * 
+ * @param s 
+ */
 void write_debug(const char* s);
+
+/**
+ * @brief Print text to the screen
+ * 
+ * @param s string
+ * @param y y-position
+ * @param x x-position
+ * @param col color id
+ */
+void printtext(const char* s, uint8_t y, uint8_t x, uint8_t col);
+
+/**
+ * @brief Print spaces to the screen
+ * 
+ * @param nrspaces number of spaces
+ * @param y y-position
+ * @param x x-position
+ */
+void printspaces(uint8_t nrspaces, uint8_t y, uint8_t x);
 
 #endif // _VIDEO_H
