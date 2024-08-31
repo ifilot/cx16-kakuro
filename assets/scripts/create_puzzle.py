@@ -30,6 +30,11 @@ def main():
     offset = 0
     for i in range(48):
         puzdata = encode_puzzle('%03i.puz' % (i+1))
+
+        # as a test, set for puzzle 6 the solve status to 1
+        if i == 5:
+            puzdata[-4] = 1
+
         offsets.append(offset)
         data += puzdata
         offset += len(puzdata)
@@ -37,6 +42,7 @@ def main():
     print(offsets)
 
     with open('PUZZLE.DAT', 'wb') as f:
+        f.write(struct.pack('<H', 0xA000))
         f.write(struct.pack('<H', len(offsets)))
         for o in offsets:
             f.write(struct.pack('<H', o + (len(offsets) + 1) * 2))
@@ -60,6 +66,12 @@ def encode_puzzle(filename):
     data.append(np.uint8(len(knowns)))
     for k in knowns:
         data.append(k[0] << 4 | k[1])
+    
+    # append metadata storage
+    # 1 byte for solve status
+    # 3 bytes for time
+    for i in range(0,4):
+        data.append(0)
 
     return data
 

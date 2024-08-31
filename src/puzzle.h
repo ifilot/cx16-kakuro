@@ -23,6 +23,8 @@
 
 #include <stdint.h>
 #include <cbm.h>
+#include <time.h>
+#include <stdio.h>
 
 #include "video.h"
 #include "tile.h"
@@ -101,5 +103,33 @@ void puzzle_set_revealed_cells();
  * 
  */
 void puzzle_color_numbers();
+
+/**
+ * @brief Show game time
+ * 
+ */
+void show_game_time();
+
+/**
+ * @brief Retrieve puzzle status based on puzzle id
+ * 
+ * @param puzzle_id 
+ * @return uint8_t 
+ */
+uint8_t retrieve_puzzle_status(uint8_t puzzle_id);
+
+/**
+ * @brief Set the puzzle status in memory
+ */
+void set_puzzle_status(uint8_t puzzle_id, uint8_t status, uint8_t hours,
+                       uint8_t minutes, uint8_t seconds);
+
+/**
+ * @brief Get the pointer to the puzzle status data given puzzle_Id
+ * 
+ * @param puzzle_id 
+ * @return uint8_t* 
+ */
+uint8_t* get_puzzle_pointer(uint8_t puzzle_id);
 
 #endif // _PUZZLE_H

@@ -186,7 +186,7 @@ void swap_color_font_tiles(uint8_t col1, uint8_t col2) {
 void write_debug(const char* s) {
     uint8_t x = 0;
     while(*s != '\0') {
-        set_tile(1, x+1, *s, 0x10, LAYER1);
+        set_tile(0, x+1, *s, 0x10, LAYER1);
         s++;
         x++;
     }

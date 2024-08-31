@@ -35,8 +35,8 @@ uint16_t tiles_incorrect = 0;
 uint16_t data_offset = 0;
 uint8_t current_puzzle_id = 0;
 uint8_t gamestate = 0;
-
-static const uint8_t rambank_puzzle = RAMBANK_PUZZLE;
+clock_t start_time;
+clock_t prevtotal;
 
 /**
  * @brief Build puzzle
@@ -61,16 +61,11 @@ void build_puzzle(uint8_t puzzle_id) {
     tiles_incorrect = 0;
 
     // set ram bank to load puzzle data into
-    asm("lda %v", rambank_puzzle);
+    asm("lda #%b", RAMBANK_PUZZLE);
     asm("sta 0");
 
-    // load puzzle into memory
-    cbm_k_setnam("puzzle.dat");
-    cbm_k_setlfs(0, 8, 2);
-    cbm_k_load(0, 0xA000);
-
-    data_offset = *(uint16_t*)(0xA000 + (puzzle_id+1) * 2);
-    v = (uint8_t*)(0xA000 + data_offset);
+    data_offset = *(uint16_t*)(BANKED_RAM + (puzzle_id+1) * 2);
+    v = (uint8_t*)(BANKED_RAM + data_offset);
 
     puzzlerows = (*v >> 4) & 0x0F;
     puzzlecols = *v & 0x0F;
@@ -190,6 +185,15 @@ void build_puzzle(uint8_t puzzle_id) {
     // build icons
     set_tile(1, 38, 0x08, 0x00, LAYER0);
     set_tile(2, 38, 0x09, 0x00, LAYER0);
+
+    // set puzzle status
+    idx = retrieve_puzzle_status(current_puzzle_id + 1);
+    idx |= STATUS_OPENED;
+    set_puzzle_status(current_puzzle_id+1, idx, 0, 0, 0);
+
+    // keep track of time
+    start_time = clock();
+    prevtotal = -1;
 }
 
 /**
@@ -430,7 +434,7 @@ void puzzle_set_revealed_cells() {
     uint8_t* v;
 
     // set ram bank to load puzzle data into
-    asm("lda %v", rambank_puzzle);
+    asm("lda #%b", RAMBANK_PUZZLE);
     asm("sta 0");
 
     // here, the pointer is now set to the number of 'knowns'
@@ -483,4 +487,101 @@ void puzzle_color_numbers() {
             }
         }
     }
+}
+
+/**
+ * @brief Show game time
+ * 
+ */
+void show_game_time() {
+    char buf[10];
+    uint8_t hours, minutes, seconds;
+    clock_t end = clock();
+    clock_t total = (end - start_time) / CLOCKS_PER_SEC;
+    
+    // early exit to save upon some clock cycles
+    if(total == prevtotal) {
+        return;
+    } else {
+        prevtotal = total;
+    }
+
+    hours = total / 3600;
+    total -= hours * 3600;
+    minutes = total / 60;
+    seconds = total % 60;
+
+    sprintf(buf, "%02I:%02I:%02I", hours, minutes, seconds);
+    printtext(buf, 29, 32, 0x15);
+}
+
+/**
+ * @brief Retrieve puzzle status based on puzzle id
+ * 
+ * @param puzzle_id puzzle_id; start counting from 1
+ * @return uint8_t 
+ */
+uint8_t retrieve_puzzle_status(uint8_t puzzle_id) {
+    uint8_t *v;
+    uint8_t ret;
+
+    // set ram bank to load puzzle data into
+    asm("lda #%b", RAMBANK_PUZZLE);
+    asm("sta 0");
+
+    v = get_puzzle_pointer(puzzle_id);
+
+    // grab first byte
+    ret = *v;
+
+    asm("lda 0");
+    asm("sta 0");
+
+    return ret;
+}
+
+/**
+ * @brief Set the puzzle status in memory
+ */
+void set_puzzle_status(uint8_t puzzle_id, uint8_t status, uint8_t hours,
+                       uint8_t minutes, uint8_t seconds) {
+    uint8_t *v;
+
+    // set ram bank to load puzzle data into
+    asm("lda #%b", RAMBANK_PUZZLE);
+    asm("sta 0");
+
+    v = get_puzzle_pointer(puzzle_id);
+
+    // increment pointer by number of knowns multiplied by 2
+    *v++ = status;
+    *v++ = hours;
+    *v++ = minutes;
+    *v = seconds;
+
+    asm("lda 0");
+    asm("sta 0");
+}
+
+/**
+ * @brief Get the pointer to the puzzle status data given puzzle_Id
+ * 
+ * @param puzzle_id 
+ * @return uint8_t* 
+ */
+uint8_t* get_puzzle_pointer(uint8_t puzzle_id) {
+    uint8_t nrcells = 0;
+    uint8_t *v;
+
+    // pointer is here to begin of puzzle data
+    v = (uint8_t*)(0xA000 + *(uint16_t*)(0xA000 + (puzzle_id * 2)));
+
+    // increment pointer by number of bytes of cell data to consume
+    nrcells = ((*v >> 4) & 0x0F) * (*v & 0x0F);
+    v += (nrcells >> 1) + (nrcells & 1) + 1;
+
+    // increment pointer by number of knowns
+    v += *(v++);
+
+    return v;
 }

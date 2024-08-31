@@ -52,7 +52,7 @@ void build_menu() {
 
     for(i=0; i<6; i++) {
         for(j=0; j<8; j++) {
-            build_icon(i, j, i*8+j+1, LAYER0);
+            build_icon(i, j, i*8+j+1, 0);
         }
     }
 
@@ -95,14 +95,31 @@ void build_tile_backward() {
  * @brief Build a menu page turning tile for the backward direction
  * 
  */
-void build_icon(uint8_t y, uint8_t x, uint8_t puzzle_id, uint8_t col_id) {
+void build_icon(uint8_t y, uint8_t x, uint8_t puzzle_id, uint8_t select) {
     uint8_t i = 0;
+    uint8_t status = 0;
+    uint8_t col_id = 0;
 
+    if(select == 1) {
+        col_id = 1;
+    } else {
+        status = retrieve_puzzle_status(puzzle_id);  
+        if(status & STATUS_SOLVED) {
+            col_id = 2;
+        } else if(status & STATUS_OPENED) {
+            col_id = 3;
+        }
+    } 
+
+    // show puzzle icon
     set_tile(4*y+4, 4*x+5, 0x0C + col_id * 0x10, 0x00, LAYER0);
     set_tile(4*y+4, 4*x+6, 0x0D + col_id * 0x10, 0x00, LAYER0);
     set_tile(4*y+5, 4*x+5, 0x0E + col_id * 0x10, 0x00, LAYER0);
     set_tile(4*y+5, 4*x+6, 0x0F + col_id * 0x10, 0x00, LAYER0);
 
+    col_id = select & 1;
+
+    // set puzzle number
     set_tile(4*y+6, 4*x+5, (puzzle_id / 10) + (col_id + 1) * 0x10, 0x00, LAYER0);
     set_tile(4*y+6, 4*x+6, (puzzle_id % 10) + (col_id + 1) * 0x10, 0x00, LAYER0);
 }
@@ -118,7 +135,6 @@ uint8_t menu_handle_mouse() {
     uint8_t scrn_tile_x, scrn_tile_y;
     uint8_t mod_tile_x, mod_tile_y;
     uint8_t pos_x, pos_y;
-
     uint8_t idx = 0;
 
     // read mouse
@@ -139,9 +155,9 @@ uint8_t menu_handle_mouse() {
             // do nothing
         } else {
             if(pos_y != obtny || pos_x != obtnx) {
-                build_icon(obtny, obtnx, obtny * 8 + obtnx + 1, 0);
+                build_icon(obtny, obtnx, obtny * 8 + obtnx + 1, 0); // release
             }
-            build_icon(pos_y, pos_x, pos_y * 8 + pos_x + 1, 2);
+            build_icon(pos_y, pos_x, pos_y * 8 + pos_x + 1, 1);     // highlight
             obtnx = pos_x;
             obtny = pos_y;
 
@@ -157,7 +173,7 @@ uint8_t menu_handle_mouse() {
             }
         }
     } else {
-        build_icon(obtny, obtnx, obtny * 8 + obtnx + 1, 0);
+        build_icon(obtny, obtnx, obtny * 8 + obtnx + 1, 0); // release
     }
 
     return 0;

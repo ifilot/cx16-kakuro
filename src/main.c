@@ -27,6 +27,11 @@
 #include "mouse.h"
 #include "menu.h"
 
+uint16_t puzzle_filesize; // file size of the puzzle files
+
+void load_puzzles(); // forward declaration
+void save_puzzles(); // forward declaration
+
 void main() {
     // load assets into memory
     init_screen();
@@ -44,6 +49,10 @@ void main() {
 
     while(1) {
         clear_screen();
+
+        // load puzzles into memory
+        load_puzzles();
+
         set_tilebase_layer0(TILEBASE_MENU);
         build_menu();
         while(1) {
@@ -59,6 +68,34 @@ void main() {
         while(!(gamestate & GAME_QUIT)) {
             puzzle_handle_mouse();
             puzzle_handle_keyboard();
+            show_game_time();
         }
+        save_puzzles();
     }
+}
+
+void load_puzzles() {
+    asm("lda #%b", RAMBANK_PUZZLE);
+    asm("sta 0");
+
+    // load puzzle into memory
+    cbm_k_setnam("puzzle.dat");
+    cbm_k_setlfs(0, 8, 1);
+    puzzle_filesize = cbm_k_load(0, 0) - BANKED_RAM;
+
+    asm("lda 0");
+    asm("sta 0");
+}
+
+void save_puzzles() {
+    asm("lda #%b", RAMBANK_PUZZLE);
+    asm("sta 0");
+
+    // load puzzle into memory
+    cbm_k_setnam("@:puzzle.dat"); // force overwrite
+    cbm_k_setlfs(1, 8, 2);
+    cbm_k_save(BANKED_RAM, BANKED_RAM + puzzle_filesize);
+
+    asm("lda 0");
+    asm("sta 0");
 }

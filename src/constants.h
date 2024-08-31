@@ -30,6 +30,7 @@
 #define MAPBASE1            0xD000      // 64 x 64 tiles
 #define PALETTEBASE         0x1FA20
 #define PALETTEBYTE         0x00
+#define BANKED_RAM          0xA000
 
 #define MAPHEIGHT           64
 #define MAPWIDTH            64
@@ -79,5 +80,9 @@
 #define GAME_PLAY           0x00
 #define GAME_QUIT           (1 << 1)
 #define GAME_VERIFY         (1 << 2)
+
+// puzzle statuses
+#define STATUS_SOLVED       (1 << 0)
+#define STATUS_OPENED       (1 << 1)
 
 #endif // _CONSTANTS_H

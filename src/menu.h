@@ -50,7 +50,7 @@ void build_tile_backward();
  * @brief Build a menu page turning tile for the backward direction
  * 
  */
-void build_icon(uint8_t y, uint8_t x, uint8_t puzzle_id, uint8_t col_id);
+void build_icon(uint8_t y, uint8_t x, uint8_t puzzle_id, uint8_t select);
 
 /**
  * @brief Handle mouse operation
