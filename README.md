@@ -6,6 +6,36 @@
 
 [Download latest version](https://github.com/ifilot/cx16-KAKURO/releases/latest/download/CX16-KAKURO.ZIP)
 
+![Kakuro Gameplay](img/cx16-kakuro-gameplay.gif)
+
+## Description
+
+Kakuro is a logic-based number puzzle game, often described as a cross between a
+crossword and Sudoku. In this game, players fill a grid with digits from 1 to 9,
+with the objective of matching the sum of numbers in each row or column to a
+given target. However, no number can be repeated within a single sum. Each clue
+is represented as a small number in a black cell, dictating the sum of the
+digits to be placed in the adjacent white cells.
+
+For the Commander X16, Kakuro offers a nostalgic experience, blending the
+puzzle's classic challenge with the retro charm of 8-bit computing. Players
+navigate the grid using the mouse and inputting numbers via keyboard. The game
+tests mathematical reasoning and strategic thinking, making it an engaging
+pastime for puzzle enthusiasts and retro gaming fans alike. The simplistic yet
+captivating design ensures that Kakuro on the Commander X16 is both a mental
+workout and a tribute to vintage gaming.
+
+## Features
+
+* In total, **48** puzzles are implemented in the game varying between 6x6 to
+  8x8 board sizes.
+* The program keeps track of the user progression. Different colors are used to
+  indicate opened and completed puzzles. The game automatically saves the result
+  to `PUZZLES.DAT` ensuring 'continuous play'. Note that the game state itself
+  is not saved.
+* If the user is stuck, they can hit a toggle button which highlights all
+  correct numbers in green, while incorrect numbers are colored in red.
+
 ## Compilation
 
 First, install the required dependencies
