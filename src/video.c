@@ -70,10 +70,10 @@ void set_tilebase_layer0(uint16_t addr) {
  * @brief Load the tiles from file into video memory
  * 
  */
-void load_tiles(const char* filename, uint16_t addr) {
+void load_tiles(const char* filename, uint32_t addr) {
     cbm_k_setnam(filename);
     cbm_k_setlfs(0, 8, 2);
-    cbm_k_load(2, addr);
+    cbm_k_load(2 + (addr >> 16), addr);
 }
 
 /**
@@ -284,4 +284,21 @@ void restore_screen_state() {
 
     asm("lda 0");
     asm("sta 0");
+}
+
+/**
+ * @brief Set the mouse pointer
+ * 
+ * @param tile_id   which tile to use
+ */
+void set_mouse_pointer(uint8_t tile_id) {
+    unsigned long sprite_addr = 0x1FC00;
+    uint32_t graph_addr = TILEBASE_MENU + (tile_id << 8);
+
+    VERA.address = sprite_addr;
+    VERA.address_hi = sprite_addr >> 16;
+    VERA.address_hi |= 0b10000;
+
+    VERA.data0 = graph_addr >> 5;
+    VERA.data0 = (graph_addr >> 13) | (1 << 7);
 }

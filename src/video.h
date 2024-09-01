@@ -38,7 +38,7 @@ void init_screen();
  * @brief Load the tiles from file into memory
  * 
  */
-void load_tiles(const char* filename, uint16_t addr);
+void load_tiles(const char* filename, uint32_t addr);
 
 /**
  * @brief Set the tilebase offset for layer0
@@ -118,5 +118,12 @@ void save_screen_state();
  * 
  */
 void restore_screen_state();
+
+/**
+ * @brief Set the mouse pointer
+ * 
+ * @param tile_id   which tile to use
+ */
+void set_mouse_pointer(uint8_t tile_id);
 
 #endif // _VIDEO_H

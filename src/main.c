@@ -39,6 +39,7 @@ void main() {
 
     // enable mouse
     init_mouse();
+    set_mouse_pointer(0x30);
 
     // load sound engine
     init_sound();

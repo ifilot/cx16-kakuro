@@ -150,6 +150,12 @@ uint8_t get_nr_incorrect_tiles();
 void puzzle_complete();
 
 /**
+ * @brief Routine to invoke when user wants to quit the puzzle
+ * 
+ */
+void puzzle_quit();
+
+/**
  * @brief Auxiliary function that computes the game time
  * 
  * @param buf 
@@ -178,5 +184,21 @@ void wait_for_key(uint8_t key);
  * @param w width
  */
 void build_window(uint8_t y, uint8_t x, uint8_t h, uint8_t w);
+
+/**
+ * @brief Print the border around the clock
+ * 
+ * @param y y-position
+ * @param x x-position
+ */
+void print_clock_border(uint8_t y, uint8_t x);
+
+/**
+ * @brief Print clock
+ * 
+ * @param y y-position on screen
+ * @param x x-position on screen
+ */
+void print_clock(const char* s, uint8_t y, uint8_t x);
 
 #endif // _PUZZLE_H
