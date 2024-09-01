@@ -22,8 +22,8 @@ SDIGITS.DAT:
 FONTMAP.DAT: ../assets/tiles/font-tiles.png ../assets/scripts/create_fontmap.py
 	$(PYTHON) ../assets/scripts/create_fontmap.py FONTMAP.DAT
 
-KAKURO.ZSM: ../assets/sound/kakuro.zsm
-	cp -v ../assets/sound/kakuro.zsm KAKURO.ZSM
+KAKURO.ZSM: ../assets/sound/cor.zsm
+	cp -v ../assets/sound/cor.zsm KAKURO.ZSM
 
 TILE.ZSM: ../assets/sound/tile.zsm
 	cp -v ../assets/sound/tile.zsm TILE.ZSM
