@@ -28,7 +28,7 @@ def main():
     data = bytearray()
     offsets = []
     offset = 0
-    for i in range(48):
+    for i in range(9,57):
         puzdata = encode_puzzle('%03i.puz' % (i+1))
         offsets.append(offset)
         data += puzdata
