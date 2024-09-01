@@ -40,7 +40,7 @@ void build_menu() {
     }
 
     // window title
-    set_tile(1, 1, 0x02, 0x00, LAYER0);
+    set_tile(1, 1, 0x0B, 0x00, LAYER0);
     for(j=2; j<=37; j++) {
         set_tile(1, j, 0x03, 0x00, LAYER0);
         set_tile(28, j, 0x05, 0x00, LAYER0);

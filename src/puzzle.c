@@ -29,14 +29,15 @@ uint8_t offset_x = 0;
 uint8_t offset_y = 0;
 int8_t ccurx = 0;
 int8_t ccury = 0;
-int8_t ocurx = 0;
-int8_t ocury = 0;
+int8_t mp_ocurx = 0;
+int8_t mp_ocury = 0;
 uint16_t tiles_incorrect = 0;
 uint16_t data_offset = 0;
 uint8_t current_puzzle_id = 0;
 uint8_t gamestate = 0;
-clock_t start_time;
+clock_t game_start_time = 0;
 clock_t prevtotal;
+char game_timebuffer[10];
 
 /**
  * @brief Build puzzle
@@ -192,7 +193,7 @@ void build_puzzle(uint8_t puzzle_id) {
     set_puzzle_status(current_puzzle_id+1, idx, 0, 0, 0);
 
     // keep track of time
-    start_time = clock();
+    game_start_time = clock();
     prevtotal = -1;
 }
 
@@ -261,7 +262,7 @@ void puzzle_handle_mouse() {
     uint8_t tpy = 0;
     uint16_t *mouse_x = (uint16_t *)0x2;
     uint16_t *mouse_y = (uint16_t *)0x4;
-    uint8_t idx = 0;
+    uint16_t idx = 0;
 
     // read mouse
     asm("ldx #2");
@@ -304,22 +305,20 @@ void puzzle_handle_mouse() {
     }
 
     // release highlight
-    if(ccurx != ocurx || ccury != ocury) {
-        idx = ocury * puzzlecols + ocurx;
+    if(ccurx != mp_ocurx || ccury != mp_ocury) {
+        idx = mp_ocury * puzzlecols + mp_ocurx;
         if((puzzledata[idx] & TLDT_LOCKED) == 0) {
-            set_puzzle_tile(ocury, ocurx, TILE_EMPTY);
+            set_puzzle_tile(mp_ocury, mp_ocurx, TILE_EMPTY);
         }
     }
 
     // place highlight
     if(ccurx >= 0 && ccurx < puzzlecols && ccury >=0 && ccury < puzzlerows) {
         idx = ccury * puzzlecols + ccurx;
-        if(puzzledata[idx] & (TLDT_LOCKED | TLDT_REVEALED)) {
-            return;
-        } else {
+        if((puzzledata[idx] & (TLDT_LOCKED | TLDT_REVEALED)) == 0) {
             set_puzzle_tile(ccury, ccurx, TILE_HIGHLIGHT);
-            ocurx = ccurx;
-            ocury = ccury;
+            mp_ocurx = ccurx;
+            mp_ocury = ccury;
         }
     }
 }
@@ -367,10 +366,10 @@ void puzzle_handle_keyboard() {
             userdata[idx] |= TLDT_WRITTEN;
 
             if(tiles_incorrect == 0) {
-                swap_color_font_tiles(0x10, 0x60);
+                puzzle_complete();
             }
         }
-    } else if(keycode == 0x1B) {
+    } else if(keycode == KEYCODE_ESCAPE) {
         printtext("Are you sure you want to quit?", 2, 2, 0x12);
         printtext("YES (Y) / NO (N)", 3, 2, 0x12);
         while(keycode != 'Y' && keycode != 'N') {
@@ -494,25 +493,8 @@ void puzzle_color_numbers() {
  * 
  */
 void show_game_time() {
-    char buf[10];
-    uint8_t hours, minutes, seconds;
-    clock_t end = clock();
-    clock_t total = (end - start_time) / CLOCKS_PER_SEC;
-    
-    // early exit to save upon some clock cycles
-    if(total == prevtotal) {
-        return;
-    } else {
-        prevtotal = total;
-    }
-
-    hours = total / 3600;
-    total -= hours * 3600;
-    minutes = total / 60;
-    seconds = total % 60;
-
-    sprintf(buf, "%02I:%02I:%02I", hours, minutes, seconds);
-    printtext(buf, 29, 32, 0x15);
+    calculate_game_time();
+    printtext(game_timebuffer, 29, 32, 0x15);
 }
 
 /**
@@ -564,7 +546,9 @@ void set_puzzle_status(uint8_t puzzle_id, uint8_t status, uint8_t hours,
 }
 
 /**
- * @brief Get the pointer to the puzzle status data given puzzle_Id
+ * @brief Get the pointer to the puzzle status data given puzzle_id
+ * 
+ * MAY ONLY BE USED IN FUNCTIONS THAT HAVE ALREADY DONE THE BANK SWITCHING
  * 
  * @param puzzle_id 
  * @return uint8_t* 
@@ -584,4 +568,133 @@ uint8_t* get_puzzle_pointer(uint8_t puzzle_id) {
     v += *(v++);
 
     return v;
+}
+
+/**
+ * @brief Calculate the number of incorrect tiles
+ * 
+ * @return uint8_t* 
+ */
+uint8_t get_nr_incorrect_tiles() {
+    uint8_t i,j;
+    uint8_t idx;
+    uint8_t incorrect = 0;
+
+    // loop over tiles and generate clues
+    for(i=0; i<puzzlerows; i++) {
+        for(j=0; j<puzzlecols; j++) {
+            idx = i * puzzlecols + j;
+            if((puzzledata[idx] & 0x0F) != (userdata[idx] & 0x0F)) {
+                incorrect++;
+            }
+        }
+    }
+
+    return incorrect;
+}
+
+/**
+ * @brief Routine to invoke when the puzzle has been completed by the user
+ * 
+ */
+void puzzle_complete() {
+    uint8_t i,j,idx;
+
+    // first, color all tiles green
+    for(i=0; i<puzzlerows; i++) {
+        for(j=0; j<puzzlecols; j++) {
+            idx = i * puzzlecols + j;
+            if((puzzledata[idx] & 0x0F) != 0) {
+                set_solution_tile(i, j, userdata[idx] & 0x0F, 0x5F);
+            }
+        }
+    }
+
+    // next, provide a message to the user
+    printtext("Congratulations!!", 2, 2, 0x10);
+    printtext("You finished the puzzle!", 3, 2, 0x15);
+    printtext("Your time is: ", 4, 2, 0x15);
+    calculate_game_time();
+    printtext(game_timebuffer, 4, 16, 0x10);
+    printtext("Press ENTER to return to menu.", 5, 2, 0x15);
+    wait_for_key(KEYCODE_RETURN);
+
+    // write game state
+    store_puzzle_state();
+
+    // update game state
+    gamestate |= GAME_COMPLETE;
+}
+
+/**
+ * @brief Auxiliary function that computes the game time and stores it in buffer
+ * 
+ * @param buf pointer to buffer
+ */
+void calculate_game_time() {
+    uint8_t hours, minutes, seconds;
+    clock_t end = clock();
+    clock_t total = (end - game_start_time) / CLOCKS_PER_SEC;
+    
+    // early exit to save upon some clock cycles
+    if(total == prevtotal) {
+        return;
+    } else {
+        prevtotal = total;
+    }
+
+    hours = total / 3600;
+    total -= hours * 3600;
+    minutes = total / 60;
+    seconds = total % 60;
+
+    sprintf(game_timebuffer, "%02U:%02U:%02U", hours, minutes, seconds);
+}
+
+/**
+ * @brief Store the puzzle state at the end of the game
+ * 
+ */
+void store_puzzle_state() {
+    uint8_t status;
+    uint8_t hours, minutes, seconds;
+    clock_t end = clock();
+    clock_t total = (end - game_start_time) / CLOCKS_PER_SEC;
+    
+    // early exit to save upon some clock cycles
+    if(total == prevtotal) {
+        return;
+    } else {
+        prevtotal = total;
+    }
+
+    hours = total / 3600;
+    total -= hours * 3600;
+    minutes = total / 60;
+    seconds = total % 60;
+
+    status = retrieve_puzzle_status(current_puzzle_id+1);
+    status |= STATUS_SOLVED;
+    set_puzzle_status(current_puzzle_id+1, status, hours, minutes, seconds);
+}
+
+/**
+ * @brief Wait for key to be pressed
+ * 
+ * @param key 
+ */
+void wait_for_key(uint8_t key) {
+    static uint8_t keycode = 0;
+
+    // consume any previous characters
+    while(keycode == key) {
+        asm("jsr $FFE4");
+        asm("sta %v", keycode);
+    }
+
+    // wait until a new character is seen
+    while(keycode != key) {
+        asm("jsr $FFE4");
+        asm("sta %v", keycode);
+    }
 }

@@ -69,6 +69,10 @@ void main() {
             puzzle_handle_mouse();
             puzzle_handle_keyboard();
             show_game_time();
+
+            if(gamestate & GAME_COMPLETE) {
+                break;
+            }
         }
         save_puzzles();
     }

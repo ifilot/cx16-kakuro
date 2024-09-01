@@ -201,7 +201,7 @@ void write_debug(const char* s) {
  * @param col color id
  */
 void printtext(const char* s, uint8_t y, uint8_t x, uint8_t col) {
-    while(*s != '\0') {
+    while(*s != 0) {
         set_tile(y, x, *s, col, LAYER1);
         s++;
         x++;

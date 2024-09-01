@@ -25,6 +25,7 @@
 #include <cbm.h>
 #include <time.h>
 #include <stdio.h>
+#include <conio.h>
 
 #include "video.h"
 #include "tile.h"
@@ -42,6 +43,8 @@ extern int8_t ocury;
 extern uint16_t tiles_incorrect;
 extern uint8_t current_puzzle_id;
 extern uint8_t gamestate;
+extern clock_t game_start_time;
+extern char game_timebuffer[10];
 
 /**
  * @brief Build puzzle
@@ -131,5 +134,38 @@ void set_puzzle_status(uint8_t puzzle_id, uint8_t status, uint8_t hours,
  * @return uint8_t* 
  */
 uint8_t* get_puzzle_pointer(uint8_t puzzle_id);
+
+/**
+ * @brief Calculate the number of incorrect tiles
+ * 
+ * @return uint8_t* 
+ */
+uint8_t get_nr_incorrect_tiles();
+
+/**
+ * @brief Routine to invoke when the puzzle has been completed by the user
+ * 
+ */
+void puzzle_complete();
+
+/**
+ * @brief Auxiliary function that computes the game time
+ * 
+ * @param buf 
+ */
+void calculate_game_time();
+
+/**
+ * @brief Store the puzzle state at the end of the game
+ * 
+ */
+void store_puzzle_state();
+
+/**
+ * @brief Wait for key to be pressed
+ * 
+ * @param key 
+ */
+void wait_for_key(uint8_t key);
 
 #endif // _PUZZLE_H

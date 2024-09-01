@@ -80,6 +80,16 @@
 #define GAME_PLAY           0x00
 #define GAME_QUIT           (1 << 1)
 #define GAME_VERIFY         (1 << 2)
+#define GAME_COMPLETE       (1 << 3)
+
+// keycodes
+#define KEYCODE_DOWN        0x91
+#define KEYCODE_UP          0x11
+#define KEYCODE_LEFT        0x9D
+#define KEYCODE_RIGHT       0x1D
+#define KEYCODE_RETURN      0x0D
+#define KEYCODE_SPACE       0x20
+#define KEYCODE_ESCAPE      0x1B
 
 // puzzle statuses
 #define STATUS_SOLVED       (1 << 0)
