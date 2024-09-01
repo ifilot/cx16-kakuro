@@ -221,3 +221,67 @@ void printspaces(uint8_t nrspaces, uint8_t y, uint8_t x) {
         set_tile(y, x+i, 0x20, 0x00, LAYER1);
     }
 }
+
+/**
+ * @brief Save the current screen state
+ * 
+ */
+void save_screen_state() {
+    uint8_t *ptr = (uint8_t*)(0xA000);
+    uint32_t map_base_addr;
+    uint16_t i;
+
+    asm("lda #%b", RAMBANK_SCREEN);
+    asm("sta 0");
+
+    map_base_addr = MAPBASE0;
+    VERA.address = map_base_addr;
+    VERA.address_hi = map_base_addr >> 16;
+    VERA.address_hi |= 0b10000;
+    for(i=0; i<0x1000; i++) {
+        *(ptr++) = VERA.data0;
+    }
+
+    map_base_addr = MAPBASE1;
+    VERA.address = map_base_addr;
+    VERA.address_hi = map_base_addr >> 16;
+    VERA.address_hi |= 0b10000;
+    for(i=0; i<0x1000; i++) {
+        *(ptr++) = VERA.data0;
+    }
+
+    asm("lda 0");
+    asm("sta 0");
+}
+
+/**
+ * @brief Restore the current screen state
+ * 
+ */
+void restore_screen_state() {
+    uint8_t *ptr = (uint8_t*)(0xA000);
+    uint32_t map_base_addr;
+    uint16_t i;
+
+    asm("lda #%b", RAMBANK_SCREEN);
+    asm("sta 0");
+
+    map_base_addr = MAPBASE0;
+    VERA.address = map_base_addr;
+    VERA.address_hi = map_base_addr >> 16;
+    VERA.address_hi |= 0b10000;
+    for(i=0; i<0x1000; i++) {
+        VERA.data0 = (*ptr++);
+    }
+
+    map_base_addr = MAPBASE1;
+    VERA.address = map_base_addr;
+    VERA.address_hi = map_base_addr >> 16;
+    VERA.address_hi |= 0b10000;
+    for(i=0; i<0x1000; i++) {
+        VERA.data0 = (*ptr++);
+    }
+
+    asm("lda 0");
+    asm("sta 0");
+}

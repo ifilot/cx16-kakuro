@@ -29,6 +29,7 @@
 
 #include "video.h"
 #include "tile.h"
+#include "sound.h"
 
 extern uint8_t* puzzledata;
 extern uint8_t puzzlerows;
@@ -167,5 +168,15 @@ void store_puzzle_state();
  * @param key 
  */
 void wait_for_key(uint8_t key);
+
+/**
+ * @brief Build window
+ * 
+ * @param y y-position
+ * @param x x-position
+ * @param h height
+ * @param w width
+ */
+void build_window(uint8_t y, uint8_t x, uint8_t h, uint8_t w);
 
 #endif // _PUZZLE_H

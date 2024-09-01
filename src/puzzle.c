@@ -364,23 +364,28 @@ void puzzle_handle_keyboard() {
                 set_solution_tile(ccury, ccurx, userdata[idx] & 0x0F, 0x12);
             }
             userdata[idx] |= TLDT_WRITTEN;
+            //play_thumb();     // need better sound effect for this one
 
             if(tiles_incorrect == 0) {
                 puzzle_complete();
             }
         }
     } else if(keycode == KEYCODE_ESCAPE) {
-        printtext("Are you sure you want to quit?", 2, 2, 0x12);
-        printtext("YES (Y) / NO (N)", 3, 2, 0x12);
+
+        save_screen_state();
+        build_window(12,5,2,30);
+        printtext("Are you sure you want to quit?", 12, 5, 0x12);
+        printtext("YES (Y) / NO (N)", 13, 5, 0x12);
+
         while(keycode != 'Y' && keycode != 'N') {
             asm("jsr $FFE4");
             asm("sta %v", keycode);
+            sound_fill_buffers();
         }
         if(keycode == 'Y') {
             gamestate |= GAME_QUIT;
         } else {
-            printspaces(30, 2, 2);
-            printspaces(16, 3, 2);
+            restore_screen_state();
         }
     }
 }
@@ -611,12 +616,13 @@ void puzzle_complete() {
     }
 
     // next, provide a message to the user
-    printtext("Congratulations!!", 2, 2, 0x10);
-    printtext("You finished the puzzle!", 3, 2, 0x15);
-    printtext("Your time is: ", 4, 2, 0x15);
+    build_window(11,5,4,30);
+    printtext("Congratulations!!", 11, 5, 0x10);
+    printtext("You finished the puzzle!", 12, 5, 0x15);
+    printtext("Your time is: ", 13, 5, 0x15);
     calculate_game_time();
-    printtext(game_timebuffer, 4, 16, 0x10);
-    printtext("Press ENTER to return to menu.", 5, 2, 0x15);
+    printtext(game_timebuffer, 13, 5+14, 0x10);
+    printtext("Press ENTER to return to menu.", 14, 5, 0x15);
     wait_for_key(KEYCODE_RETURN);
 
     // write game state
@@ -696,5 +702,48 @@ void wait_for_key(uint8_t key) {
     while(keycode != key) {
         asm("jsr $FFE4");
         asm("sta %v", keycode);
+        sound_fill_buffers();
+    }
+}
+
+/**
+ * @brief Build window
+ * 
+ * @param x x-position
+ * @param y y-position
+ * @param w width
+ * @param h height
+ */
+void build_window(uint8_t y, uint8_t x, uint8_t h, uint8_t w) {
+    uint8_t i,j;
+
+    // top and bottom borders
+    set_tile(y-1, x-1, 0x15, 0x00, LAYER0);     // left-top
+    set_tile(y+h, x-1, 0x16, 0x00, LAYER0);     // left-bottom
+    for(i=0; i<w; i++) {
+        set_tile(y-1, x+i, 0x11, 0x00, LAYER0); // top layer
+        set_tile(y+h, x+i, 0x13, 0x00, LAYER0); // bottom layer
+    }
+    set_tile(y-1, x+w, 0x10, MIRROR_X, LAYER0); // right-top
+    set_tile(y+h, x+w, 0x16, MIRROR_X, LAYER0); // right-bottom
+
+    // left and right borders
+    for(i=0; i<h; i++) {
+        set_tile(y+i, x-1, 0x12, 0x00, LAYER0);
+        set_tile(y+i, x+w, 0x12, MIRROR_X, LAYER0);
+    }
+
+    // core
+    for(i=0; i<h; i++) {
+        for(j=0; j<w; j++) {
+            set_tile(y+i, x+j, 0x14, MIRROR_X, LAYER0);
+        }
+    }
+
+    // remove any text tiles
+    for(i=0; i<h+2; i++) {
+        for(j=0; j<w+2; j++) {
+            set_tile(y+i-1, x+j-1, 0x00, 0x00, LAYER1);
+        }
     }
 }

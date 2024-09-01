@@ -4,8 +4,8 @@ PYTHON=python3
 
 make: KAKURO.PRG
 
-KAKURO.PRG: *.c *.h *.s TILES.DAT MTILES.DAT PUZZLE.DAT SDIGITS.DAT FONTMAP.DAT
-	$(CC) -O -o KAKURO.PRG -t cx16 -C kakuro.cfg *.c *.s
+KAKURO.PRG: *.c *.h *.s TILES.DAT MTILES.DAT PUZZLE.DAT SDIGITS.DAT FONTMAP.DAT KAKURO.ZSM TILE.ZSM
+	$(CC) -O -o KAKURO.PRG -t cx16 -C kakuro.cfg *.c *.s *.lib
 
 TILES.DAT: ../assets/tiles/tiles.png ../assets/scripts/convert_tilemap.py
 	$(PYTHON) ../assets/scripts/convert_tilemap.py tiles.png TILES.DAT 2
@@ -21,6 +21,12 @@ SDIGITS.DAT:
 
 FONTMAP.DAT: ../assets/tiles/font-tiles.png ../assets/scripts/create_fontmap.py
 	$(PYTHON) ../assets/scripts/create_fontmap.py FONTMAP.DAT
+
+KAKURO.ZSM: ../assets/sound/kakuro.zsm
+	cp -v ../assets/sound/kakuro.zsm KAKURO.ZSM
+
+TILE.ZSM: ../assets/sound/tile.zsm
+	cp -v ../assets/sound/tile.zsm TILE.ZSM
 
 run: KAKURO.PRG
 	$(EMU) -prg KAKURO.PRG -run

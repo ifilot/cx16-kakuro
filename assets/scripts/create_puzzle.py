@@ -30,11 +30,6 @@ def main():
     offset = 0
     for i in range(48):
         puzdata = encode_puzzle('%03i.puz' % (i+1))
-
-        # as a test, set for puzzle 6 the solve status to 1
-        if i == 5:
-            puzdata[-4] = 1
-
         offsets.append(offset)
         data += puzdata
         offset += len(puzdata)

@@ -107,4 +107,16 @@ void printtext(const char* s, uint8_t y, uint8_t x, uint8_t col);
  */
 void printspaces(uint8_t nrspaces, uint8_t y, uint8_t x);
 
+/**
+ * @brief Save the current screen state
+ * 
+ */
+void save_screen_state();
+
+/**
+ * @brief Restore the current screen state
+ * 
+ */
+void restore_screen_state();
+
 #endif // _VIDEO_H

@@ -26,6 +26,7 @@
 #include "tile.h"
 #include "mouse.h"
 #include "menu.h"
+#include "sound.h"
 
 uint16_t puzzle_filesize; // file size of the puzzle files
 
@@ -38,6 +39,10 @@ void main() {
 
     // enable mouse
     init_mouse();
+
+    // load sound engine
+    init_sound();
+    start_bgmusic();
 
     // load into VERA
     load_tiles("mtiles.dat", TILEBASE_MENU);
@@ -59,6 +64,7 @@ void main() {
             if(menu_handle_mouse() == 1) {
                 break;
             }
+            sound_fill_buffers();
         }
 
         clear_screen();
@@ -73,6 +79,7 @@ void main() {
             if(gamestate & GAME_COMPLETE) {
                 break;
             }
+            sound_fill_buffers();
         }
         save_puzzles();
     }

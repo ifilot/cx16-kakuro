@@ -51,9 +51,11 @@
 #define MIRROR_XY           (MIRROR_X | MIRROR_Y)
 
 // rambanks
-#define RAMBANK_PUZZLE      0x01
-#define RAMBANK_TILE        0x02
-#define RAMBANK_COLSWAP     0x03
+#define RAMBANK_SOUND       0x01
+#define RAMBANK_PUZZLE      0x02
+#define RAMBANK_TILE        0x03
+#define RAMBANK_COLSWAP     0x04
+#define RAMBANK_SCREEN      0x05
 
 // puzzledata settings
 #define TLDT_REVEALED       (1 << 4)
@@ -94,5 +96,8 @@
 // puzzle statuses
 #define STATUS_SOLVED       (1 << 0)
 #define STATUS_OPENED       (1 << 1)
+
+#define NO                  0x00
+#define YES                 0x01
 
 #endif // _CONSTANTS_H
