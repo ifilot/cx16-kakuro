@@ -66,7 +66,7 @@ void build_menu() {
     printtext("Kakuro", 2, 2, 0x12);
 
     // print version number
-    printtext("v/0.1.0", 28, 28, 0x1C);
+    printtext("v/0.2.0", 28, 28, 0x1C);
 }
 
 /**
