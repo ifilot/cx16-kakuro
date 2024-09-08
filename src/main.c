@@ -48,7 +48,8 @@ void main() {
     // load into VERA
     load_tiles("mtiles.dat", TILEBASE_MENU);
     load_tiles("tiles.dat", TILEBASE_GAME);
-    load_tiles("fontmap.dat", TILEBASE_FONT);
+    load_tiles("font16.dat", TILEBASE_FONT16);
+    load_tiles("font8.dat", TILEBASE_FONT8);
 
     // load assets
     load_small_digits();

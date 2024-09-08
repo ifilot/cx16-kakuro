@@ -28,7 +28,7 @@ def main():
     data = bytearray()
     offsets = []
     offset = 0
-    for i in range(9,57):
+    for i in range(85-48,85):
         puzdata = encode_puzzle('%03i.puz' % (i+1))
         offsets.append(offset)
         data += puzdata
@@ -44,7 +44,7 @@ def main():
         f.write(data)
 
 def encode_puzzle(filename):
-    (rows, cols), values, knowns = read_file(os.path.join(ROOT, '..', 'puzzles', filename))
+    (rows, cols), values, knowns, difficulty = read_file(os.path.join(ROOT, '..', 'puzzles', filename))
     nrcells = rows * cols
 
     # store numeric data
@@ -63,10 +63,13 @@ def encode_puzzle(filename):
         data.append(k[0] << 4 | k[1])
     
     # append metadata storage
-    # 1 byte for solve status
+    # 1 byte for solve status, difficulty and map size
     # 3 bytes for time
     for i in range(0,4):
-        data.append(0)
+        if i == 0:
+            data.append(((difficulty-1) << 6) | ((rows - 6) << 2))
+        else:
+            data.append(0)
 
     return data
 
@@ -75,7 +78,10 @@ def read_file(filename):
         data = []
         rawdata = []
         
-        for line in f.readlines():
+        for i,line in enumerate(f.readlines()):
+            if i == 0:
+                metadata = line
+                difficulty = int(metadata.split('/')[-1][0])
             if line.startswith('#'):
                 continue
             data.append(line.strip().replace('#','').split())
@@ -95,7 +101,7 @@ def read_file(filename):
                 if rawdata[j][i].startswith('#'):
                     knowns.append((j,i))
 
-    return (rows, cols), values, knowns
+    return (rows, cols), values, knowns, difficulty
 
 if __name__ == '__main__':
     main()

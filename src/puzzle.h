@@ -134,7 +134,7 @@ void set_puzzle_status(uint8_t puzzle_id, uint8_t status, uint8_t hours,
  * @param puzzle_id 
  * @return uint8_t* 
  */
-uint8_t* get_puzzle_pointer(uint8_t puzzle_id);
+uint8_t* get_puzzle_status_pointer(uint8_t puzzle_id);
 
 /**
  * @brief Calculate the number of incorrect tiles

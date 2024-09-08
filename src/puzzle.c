@@ -416,6 +416,9 @@ void puzzle_generate_clues() {
                     ((TILEBASE_CUSTOM - TILEBASE_GAME) >> 8)+vrampos, 0x00, 0);
                 vrampos++;
             }
+
+            // this can take quite some time, avoid the sound buffer from emptying
+            sound_fill_buffers();
         }
     }
 }
@@ -504,7 +507,7 @@ uint8_t retrieve_puzzle_status(uint8_t puzzle_id) {
     asm("lda #%b", RAMBANK_PUZZLE);
     asm("sta 0");
 
-    v = get_puzzle_pointer(puzzle_id);
+    v = get_puzzle_status_pointer(puzzle_id);
 
     // grab first byte
     ret = *v;
@@ -526,7 +529,7 @@ void set_puzzle_status(uint8_t puzzle_id, uint8_t status, uint8_t hours,
     asm("lda #%b", RAMBANK_PUZZLE);
     asm("sta 0");
 
-    v = get_puzzle_pointer(puzzle_id);
+    v = get_puzzle_status_pointer(puzzle_id);
 
     // increment pointer by number of knowns multiplied by 2
     *v++ = status;
@@ -546,7 +549,7 @@ void set_puzzle_status(uint8_t puzzle_id, uint8_t status, uint8_t hours,
  * @param puzzle_id 
  * @return uint8_t* 
  */
-uint8_t* get_puzzle_pointer(uint8_t puzzle_id) {
+uint8_t* get_puzzle_status_pointer(uint8_t puzzle_id) {
     uint8_t nrcells = 0;
     uint8_t *v;
 

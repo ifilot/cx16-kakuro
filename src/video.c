@@ -45,7 +45,7 @@ void init_screen() {
     // layer 1
     // On this layer, the values that the user fills in for the tiles are shown
     VERA.layer1.config   = (1 << 3) | (1 << 4) | (1 << 6);      // T256C
-    VERA.layer1.tilebase = (TILEBASE_FONT >> 9) | 0x03;         // 16 x 16 tiles
+    VERA.layer1.tilebase = (TILEBASE_FONT16 >> 9) | 0x03;       // 16 x 16 tiles
     VERA.layer1.mapbase  = MAPBASE1 >> 9;
 
     // enable both layers
@@ -153,7 +153,7 @@ void swap_color_font_tiles(uint8_t col1, uint8_t col2) {
             end = (uint8_t*)(BANKED_RAM + 16*16*2);
         }
 
-        vera_addr = TILEBASE_FONT + (i+2) * 16 * 16 * 16;
+        vera_addr = TILEBASE_FONT16 + (i+2) * 16 * 16 * 16;
         VERA.address = vera_addr;
         VERA.address_hi = vera_addr >> 16;
         VERA.address_hi |= 0b10000;
@@ -167,7 +167,7 @@ void swap_color_font_tiles(uint8_t col1, uint8_t col2) {
             ptr++;
         }
 
-        vera_addr = TILEBASE_FONT + (i+2) * 16 * 16 * 16;
+        vera_addr = TILEBASE_FONT16 + (i+2) * 16 * 16 * 16;
         VERA.address = vera_addr;
         VERA.address_hi = vera_addr >> 16;
         VERA.address_hi |= 0b10000;

@@ -26,8 +26,9 @@
 #define TILEBASE_GAME       0x06000      // 2*16 tiles at 8bpp
 #define TILEBASE_CUSTOM     0x0A000      // 4*16 tiles at 8bpp
 #define MAPBASE0            0x0D000      // 64 x 64 tiles
-#define TILEBASE_FONT       0x14000      // 8 * 16 tiles at 1bpp
-#define MAPBASE1            0x16000      // 64 x 64 tiles
+#define TILEBASE_FONT16     0x14000      // 10 * 16 tiles at 1bpp
+#define TILEBASE_FONT8      0x16000      // 6 * 16 tiles at 1bpp
+#define MAPBASE1            0x18000      // 64 x 64 tiles
 #define PALETTEBASE         0x1FA20
 #define PALETTEBYTE         0x00
 #define BANKED_RAM          0xA000

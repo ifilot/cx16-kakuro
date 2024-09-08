@@ -99,23 +99,28 @@ void build_icon(uint8_t y, uint8_t x, uint8_t puzzle_id, uint8_t select) {
     uint8_t i = 0;
     uint8_t status = 0;
     uint8_t col_id = 0;
+    uint8_t rows = 0;
+    uint8_t diff = 0;
 
+    status = retrieve_puzzle_status(puzzle_id);
     if(select == 1) {
         col_id = 1;
     } else {
-        status = retrieve_puzzle_status(puzzle_id);  
         if(status & STATUS_SOLVED) {
             col_id = 2;
         } else if(status & STATUS_OPENED) {
             col_id = 3;
         }
-    } 
+    }
+
+    rows = (status >> 2) & 0x07;
+    diff = (status >> 6) & 0x03;
 
     // show puzzle icon
-    set_tile(4*y+4, 4*x+5, 0x0C + col_id * 0x10, 0x00, LAYER0);
-    set_tile(4*y+4, 4*x+6, 0x0D + col_id * 0x10, 0x00, LAYER0);
-    set_tile(4*y+5, 4*x+5, 0x0E + col_id * 0x10, 0x00, LAYER0);
-    set_tile(4*y+5, 4*x+6, 0x0F + col_id * 0x10, 0x00, LAYER0);
+    set_tile(4*y+4, 4*x+5, 0x48 + col_id, 0x00, LAYER0);
+    set_tile(4*y+4, 4*x+6, 0x40 + diff, 0x00, LAYER0);
+    set_tile(4*y+5, 4*x+5, 0x50 + rows, 0x00, LAYER0);
+    set_tile(4*y+5, 4*x+6, 0x58 + col_id, 0x00, LAYER0);
 
     col_id = select & 1;
 
