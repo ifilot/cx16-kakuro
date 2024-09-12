@@ -1,0 +1,13 @@
+|=====================|
+| ABOUT: CX-16 KAKURO |
+| VERSION: 0.2.0      |
+|=====================|
+
+Kakuro for the Commander X16 is developed by Ivo Filot. The source code for this
+game can be found on its Github page: https://github.com/ifilot/cx16-kakuro/.
+
+The source code is available under the  GNU General Public License version 3.
+
+---------------------------------
+PRESS ESCAPE TO LEAVE THIS SCREEN
+---------------------------------

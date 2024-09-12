@@ -28,34 +28,54 @@
 #include "constants.h"
 #include "puzzle.h"
 
+extern uint8_t menu_page;
+
 /**
  * @brief Build the puzzle selection  menu
  * 
  */
-void build_menu();
+void menu_init();
 
 /**
  * @brief Build a menu page turning tile for the forward direction
  * 
  */
-void build_tile_forward();
+void menu_build_tile_forward(uint8_t col);
 
 /**
  * @brief Build a menu page turning tile for the backward direction
  * 
  */
-void build_tile_backward();
+void menu_build_tile_backward(uint8_t col);
+
+/**
+ * @brief Build regular right-bottom page corner
+ * 
+ */
+void menu_build_corner_forward();
+
+/**
+ * @brief Build regular left-bottom page corner
+ * 
+ */
+void menu_build_corner_backward();
 
 /**
  * @brief Build a menu page turning tile for the backward direction
  * 
  */
-void build_icon(uint8_t y, uint8_t x, uint8_t puzzle_id, uint8_t select);
+void menu_build_icon(uint8_t y, uint8_t x, uint8_t puzzle_id, uint8_t select);
 
 /**
  * @brief Handle mouse operation
  * 
  */
 uint8_t menu_handle_mouse();
+
+/**
+ * @brief print page number
+ * 
+ */
+void menu_print_page();
 
 #endif // _MENU_H

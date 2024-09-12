@@ -21,7 +21,7 @@
 #include "docview.h"
 
 /**
- * @brief Initialize screen
+ * @brief Initialize screen; set number of tiles and dimensions
  * 
  */
 void docview_init_screen() {
@@ -29,13 +29,10 @@ void docview_init_screen() {
     VERA.display.hscale = 128;
     VERA.display.vscale = 128;
 
-    // layer 0
-    // This layer contains the game background and the puzzle background; this
-    // includes all 'static' squares
+    // layer 0: background
     set_tilebase_layer0(TILEBASE_MENU);
     
-    // layer 1
-    // On this layer, the values that the user fills in for the tiles are shown
+    // layer 1: text
     VERA.layer1.config   = (1 << 3) | (2 << 4) | (1 << 6);      // T256C
     VERA.layer1.tilebase = (TILEBASE_FONT8 >> 9);       // 16 x 16 tiles
     VERA.layer1.mapbase  = MAPBASE1 >> 9;
@@ -43,14 +40,11 @@ void docview_init_screen() {
     // enable both layers
     VERA.display.video |= 0b00110000;
 
-    // enable sprites
-    //VERA.display.video |= 0b01000000;
-
     docview_clear_screen();
 }
 
 /**
- * @brief Prepare screen to write text to it
+ * @brief Clear layer0 and layer1 with background and empty tiles, respectively
  * 
  */
 void docview_clear_screen() {
@@ -61,7 +55,7 @@ void docview_clear_screen() {
 /**
  * @brief Write string to screen
  * 
- * @param s 
+ * @param s pointer to null-terminated string
  */
 void docview_write_string(const char* s) {
     uint8_t x = 0;
@@ -94,19 +88,22 @@ void docview_write_string(const char* s) {
 /**
  * @brief Load file into memory
  * 
- * @param s 
+ * @param filename filename on SD card
  */
-void docview_load_file(const char* s) {
+void docview_load_file(const char* filename) {
     uint8_t *ptr;
+
+    // swap to ram bank for docview
     asm("lda #%b", RAMBANK_DOCVIEW);
     asm("sta 0");
 
-    // load puzzle into memory
-    cbm_k_setnam(s);
+    // load file into memory
+    cbm_k_setnam(filename);
     cbm_k_setlfs(0, 8, 2);
     ptr = (uint8_t*)(cbm_k_load(0, BANKED_RAM));
     *ptr = 0x00;    // write terminating byte
 
+    // swap back to first rambank
     asm("lda 0");
     asm("sta 0");
 }

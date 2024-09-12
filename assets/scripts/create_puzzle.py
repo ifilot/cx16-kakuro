@@ -28,7 +28,7 @@ def main():
     data = bytearray()
     offsets = []
     offset = 0
-    for i in range(85-48,85):
+    for i in range(0,96):
         puzdata = encode_puzzle('%03i.puz' % (i+1))
         offsets.append(offset)
         data += puzdata
@@ -44,6 +44,7 @@ def main():
         f.write(data)
 
 def encode_puzzle(filename):
+    print('Parsing: %s' % filename)
     (rows, cols), values, knowns, difficulty = read_file(os.path.join(ROOT, '..', 'puzzles', filename))
     nrcells = rows * cols
 

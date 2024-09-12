@@ -22,13 +22,14 @@
 
 int8_t obtnx = 0; 
 int8_t obtny = 0;
+uint8_t menu_page = 0;
 
 /**
  * @brief Build the puzzle selection  menu
  * 
  */
-void build_menu() {
-    uint8_t i,j;
+void menu_init() {
+    uint8_t i,j,puzidx;
     
     // window background
     for(i=2; i<=27; i++) {
@@ -47,12 +48,22 @@ void build_menu() {
     }
     set_tile(1, 38, 0x02, MIRROR_X, LAYER0);
 
-    build_tile_forward();
-    build_tile_backward();
+    if((menu_page+1) < MAX_PAGES) {
+        menu_build_tile_forward(0);
+    } else {
+        menu_build_corner_forward();
+    }
 
+    if(menu_page > 0) {
+        menu_build_tile_backward(0);
+    } else {
+        menu_build_corner_backward();
+    }
+
+    puzidx = menu_page * 48 + 1;
     for(i=0; i<6; i++) {
         for(j=0; j<8; j++) {
-            build_icon(i, j, i*8+j+1, 0);
+            menu_build_icon(i, j, puzidx++, 0);
         }
     }
 
@@ -64,36 +75,59 @@ void build_menu() {
 
     // print text
     printtext("Kakuro", 2, 2, 0x12);
-    printtext("Explanation  Options  About", 28, 6, 0x14);
+    printtext("Help  Options  About", 28, ML_EXPL, 0x14);
+    menu_print_page();
 }
 
 /**
  * @brief Build a menu page turning tile for the forward direction
  * 
  */
-void build_tile_forward() {
-    set_tile(27, 37, 0x08, MIRROR_X, LAYER0);
-    set_tile(27, 38, 0x07, MIRROR_X, LAYER0);
-    set_tile(28, 37, 0x0A, MIRROR_X, LAYER0);
-    set_tile(28, 38, 0x09, MIRROR_X, LAYER0);
+void menu_build_tile_forward(uint8_t col) {
+    set_tile(27, 37, 0x08 + col * 0x30, MIRROR_X, LAYER0);
+    set_tile(27, 38, 0x07 + col * 0x30, MIRROR_X, LAYER0);
+    set_tile(28, 37, 0x0A + col * 0x30, MIRROR_X, LAYER0);
+    set_tile(28, 38, 0x09 + col * 0x30, MIRROR_X, LAYER0);
 }
 
 /**
  * @brief Build a menu page turning tile for the backward direction
  * 
  */
-void build_tile_backward() {
-    set_tile(27, 1, 0x07, 0x00, LAYER0);
-    set_tile(27, 2, 0x08, 0x00, LAYER0);
-    set_tile(28, 1, 0x09, 0x00, LAYER0);
-    set_tile(28, 2, 0x0A, 0x00, LAYER0);
+void menu_build_tile_backward(uint8_t col) {
+    set_tile(27, 1, 0x07 + col * 0x30, 0x00, LAYER0);
+    set_tile(27, 2, 0x08 + col * 0x30, 0x00, LAYER0);
+    set_tile(28, 1, 0x09 + col * 0x30, 0x00, LAYER0);
+    set_tile(28, 2, 0x0A + col * 0x30, 0x00, LAYER0);
+}
+
+/**
+ * @brief Build a menu page turning tile for the forward direction
+ * 
+ */
+void menu_build_corner_forward() {
+    set_tile(27, 37, 0x06, MIRROR_X, LAYER0);
+    set_tile(27, 38, 0x04, MIRROR_X, LAYER0);
+    set_tile(28, 37, 0x05, MIRROR_X, LAYER0);
+    set_tile(28, 38, 0x0C, MIRROR_X, LAYER0);
 }
 
 /**
  * @brief Build a menu page turning tile for the backward direction
  * 
  */
-void build_icon(uint8_t y, uint8_t x, uint8_t puzzle_id, uint8_t select) {
+void menu_build_corner_backward() {
+    set_tile(27, 1, 0x04, 0x00, LAYER0);
+    set_tile(27, 2, 0x06, 0x00, LAYER0);
+    set_tile(28, 1, 0x0C, 0x00, LAYER0);
+    set_tile(28, 2, 0x05, 0x00, LAYER0);
+}
+
+/**
+ * @brief Build a menu page turning tile for the backward direction
+ * 
+ */
+void menu_build_icon(uint8_t y, uint8_t x, uint8_t puzzle_id, uint8_t select) {
     uint8_t i = 0;
     uint8_t status = 0;
     uint8_t col_id = 0;
@@ -151,6 +185,7 @@ uint8_t menu_handle_mouse() {
     mod_tile_x = scrn_tile_x % 4;   // get modulus for division by 4
     mod_tile_y = scrn_tile_y % 4;
 
+    // puzzle tiles
     if(mod_tile_y <= 2 && (mod_tile_x == 1 || mod_tile_x == 2)) {
         pos_x = (scrn_tile_x - 5) >> 2;
         pos_y = (scrn_tile_y - 4) >> 2;
@@ -158,9 +193,9 @@ uint8_t menu_handle_mouse() {
             // do nothing
         } else {
             if(pos_y != obtny || pos_x != obtnx) {
-                build_icon(obtny, obtnx, obtny * 8 + obtnx + 1, 0); // release
+                menu_build_icon(obtny, obtnx, obtny * 8 + obtnx + 1 + menu_page * 48, 0); // release
             }
-            build_icon(pos_y, pos_x, pos_y * 8 + pos_x + 1, 1);     // highlight
+            menu_build_icon(pos_y, pos_x, pos_y * 8 + pos_x + 1 + menu_page * 48, 1);     // highlight
             obtnx = pos_x;
             obtny = pos_y;
 
@@ -171,27 +206,74 @@ uint8_t menu_handle_mouse() {
                     asm("sta %v", mouse_buttons);
                 }
 
-                current_puzzle_id = obtny * 8 + obtnx;
+                current_puzzle_id = obtny * 8 + obtnx + menu_page * 48;
                 gamestate = GAME_PLAY;
                 return 1;
             }
         }
     } else {
-        build_icon(obtny, obtnx, obtny * 8 + obtnx + 1, 0); // release
+        menu_build_icon(obtny, obtnx, obtny * 8 + obtnx + 1 + menu_page * 48, 0); // release
     }
 
+    // page turning tiles
+    if(scrn_tile_y >= 27 && scrn_tile_y <=28 && 
+       scrn_tile_x >= 1 && scrn_tile_x <= 2 &&
+       menu_page > 0) {
+        menu_build_tile_backward(1);
+        if(mouse_buttons & 1) {
+            while(mouse_buttons != 0x00) {
+                asm("ldx #2");
+                asm("jsr $FF6B");
+                asm("sta %v", mouse_buttons);
+            }
+            menu_page--;
+            menu_init();
+            return 0;
+        }
+    } else {
+        if(menu_page > 0) {
+            menu_build_tile_backward(0);
+        } else {
+            menu_build_corner_backward();
+        }
+    }
+
+    if(scrn_tile_y >= 27 && scrn_tile_y <=28 && 
+       scrn_tile_x >= 37 && scrn_tile_x <= 38 &&
+       (menu_page+1) < MAX_PAGES) {
+        menu_build_tile_forward(1);
+        if(mouse_buttons & 1) {
+            while(mouse_buttons != 0x00) {
+                asm("ldx #2");
+                asm("jsr $FF6B");
+                asm("sta %v", mouse_buttons);
+            }
+            menu_page++;
+            menu_init();
+            return 0;
+        }
+    } else {
+        if((menu_page+1) < MAX_PAGES) {
+            menu_build_tile_forward(0);
+        } else {
+            menu_build_corner_forward();
+        }
+    }
+
+    // menu labels
     if(scrn_tile_y == 28) {
-        if(scrn_tile_x >= 6 && scrn_tile_x < 17) {
-            printtext("Explanation", 28, 6, 0x02);
+        if(scrn_tile_x >= ML_EXPL && scrn_tile_x < (ML_EXPL+4)) {
+            printtext("Help", 28, ML_EXPL, MENU_HIGHLIGHT);
             idx = GAME_DOCVIEW_EXP;
-        } else if(scrn_tile_x >= 19 && scrn_tile_x < 26) {
-            printtext("Options", 28, 19, 0x02);
+        } else if(scrn_tile_x >= ML_OPTS && scrn_tile_x < (ML_OPTS+7)) {
+            printtext("Options", 28, ML_OPTS, MENU_HIGHLIGHT);
             idx = GAME_OPTIONS;
-        } else if(scrn_tile_x >= 28 && scrn_tile_x < 34) {
-            printtext("About", 28, 28, 0x02);
+        } else if(scrn_tile_x >= ML_ABOUT && scrn_tile_x < (ML_ABOUT+5)) {
+            printtext("About", 28, ML_ABOUT, MENU_HIGHLIGHT);
             idx = GAME_DOCVIEW_ABOUT;
         } else {
-            printtext("Explanation  Options  About", 28, 6, 0x14);
+            printtext("Help  Options  About", 28, ML_EXPL, 0x14);
+            return 0;
         }
 
         if(mouse_buttons & 1) {
@@ -206,8 +288,18 @@ uint8_t menu_handle_mouse() {
         }
 
     } else {
-        printtext("Explanation  Options  About", 28, 6, 0x14);
+        printtext("Help  Options  About", 28, ML_EXPL, 0x14);
     }
 
     return 0;
+}
+
+/**
+ * @brief print page number
+ * 
+ */
+void menu_print_page() {
+    char buf[16];
+    sprintf(buf, "Pg:%X/%X", menu_page+1, MAX_PAGES);
+    printtext(buf, 28, ML_PAGE, 0x18);
 }

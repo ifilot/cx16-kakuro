@@ -55,27 +55,38 @@ void main() {
     load_puzzles();
 
     while(1) {
+        /***********************************************************************
+         * MENU
+         **********************************************************************/
         clear_screen();
         set_tilebase_layer0(TILEBASE_MENU);
-        build_menu();
-        while(1) {
-            if(menu_handle_mouse() == 1) {
-                break;
-            }
+        menu_init();
+        while(menu_handle_mouse() == 0) {
             sound_fill_buffers();
         }
 
-        if(gamestate & GAME_DOCVIEW_EXP) {
+        /***********************************************************************
+         * DOCVIEWER
+         **********************************************************************/
+        if((gamestate & GAME_DOCVIEW_EXP) || (gamestate & GAME_DOCVIEW_ABOUT)) {
             docview_init_screen();
-            docview_load_file("KAKURO.TXT");
+            if(gamestate == GAME_DOCVIEW_EXP) {
+                docview_load_file("HELP.TXT");
+            }
+            if(gamestate == GAME_DOCVIEW_ABOUT) {
+                docview_load_file("ABOUT.TXT");
+            }
             docview_show_file();
-            while(gamestate & GAME_DOCVIEW_EXP) {
+            while((gamestate & GAME_DOCVIEW_EXP) || (gamestate & GAME_DOCVIEW_ABOUT)) {
                 docview_handle_key();
                 sound_fill_buffers();
             }
             init_screen();
         }
 
+        /***********************************************************************
+         * GAME
+         **********************************************************************/
         if(gamestate & GAME_PLAY) {
             clear_screen();
             set_tilebase_layer0(TILEBASE_GAME);

@@ -105,4 +105,13 @@
 #define NO                  0x00
 #define YES                 0x01
 
+#define MENU_HIGHLIGHT      0x9A
+#define MAX_PAGES           2
+
+// menu label positions
+#define ML_EXPL             4
+#define ML_OPTS             (ML_EXPL + 4 + 2)
+#define ML_ABOUT            (ML_OPTS + 7 + 2)
+#define ML_PAGE             30
+
 #endif // _CONSTANTS_H
