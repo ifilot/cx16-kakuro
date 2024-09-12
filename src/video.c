@@ -21,14 +21,6 @@
 #include "video.h"
 
 /**
- * MEMORY MAP
- * ==========
- * 0x0000 - 0x6000 - Tileset for menu
- * 0x6000 - 0x8000 - Tileset for game
- * 
- */
-
-/**
  * @brief Initialize screen
  * 
  */
@@ -83,8 +75,8 @@ void load_tiles(const char* filename, uint32_t addr) {
  * 
  */
 void clear_screen() {
-    fill_layer(TILE_BACKGROUND, LAYER0, PALETTEBYTE);
-    fill_layer(0x20, LAYER1, 0x00);
+    fill_layer(TILE_BACKGROUND, LAYER0, PALETTEBYTE, 64, 64);
+    fill_layer(0x20, LAYER1, 0x00, 64, 64);
 }
 
 /**
@@ -92,8 +84,11 @@ void clear_screen() {
  *
  * @param tile_id background tile index
  * @param layer   which layer to fill
+ * @param b2      which tile info to use
+ * @param height  height of the map
+ * @param width   width of the map
  */
-void fill_layer(uint8_t tile_id, uint8_t layer, uint8_t b2) {
+void fill_layer(uint8_t tile_id, uint8_t layer, uint8_t b2, uint8_t height, uint8_t width) {
     uint8_t i,j;
     uint32_t map_base_addr;
 
@@ -103,8 +98,8 @@ void fill_layer(uint8_t tile_id, uint8_t layer, uint8_t b2) {
     VERA.address_hi = map_base_addr >> 16;
     VERA.address_hi |= 0b10000;
 
-    for (j=0; j<MAPHEIGHT; j++) {
-        for (i=0; i<MAPWIDTH; i++) {
+    for (j=0; j<height; j++) {
+        for (i=0; i<width; i++) {
             VERA.data0 = tile_id;       // background tile
             VERA.data0 = b2;            // palette offset data
         }

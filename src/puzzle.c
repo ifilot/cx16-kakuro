@@ -38,6 +38,7 @@ uint8_t gamestate = 0;
 clock_t game_start_time = 0;
 clock_t prevtotal;
 char game_timebuffer[10];
+uint16_t puzzle_filesize; // file size of the puzzle files
 
 /**
  * @brief Build puzzle
@@ -798,4 +799,38 @@ void print_clock(const char* s, uint8_t y, uint8_t x) {
         x++;
         s++;
     }
+}
+
+/**
+ * @brief Load puzzles data into memory
+ * 
+ */
+void load_puzzles() {
+    asm("lda #%b", RAMBANK_PUZZLE);
+    asm("sta 0");
+
+    // load puzzle into memory
+    cbm_k_setnam("puzzle.dat");
+    cbm_k_setlfs(0, 8, 1);
+    puzzle_filesize = cbm_k_load(0, 0) - BANKED_RAM;
+
+    asm("lda 0");
+    asm("sta 0");
+}
+
+/**
+ * @brief Save puzzles data to SD-card
+ * 
+ */
+void save_puzzles() {
+    asm("lda #%b", RAMBANK_PUZZLE);
+    asm("sta 0");
+
+    // load puzzle into memory
+    cbm_k_setnam("@:puzzle.dat"); // force overwrite
+    cbm_k_setlfs(1, 8, 2);
+    cbm_k_save(BANKED_RAM, BANKED_RAM + puzzle_filesize);
+
+    asm("lda 0");
+    asm("sta 0");
 }

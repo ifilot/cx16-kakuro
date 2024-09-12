@@ -57,6 +57,7 @@
 #define RAMBANK_TILE        0x03
 #define RAMBANK_COLSWAP     0x04
 #define RAMBANK_SCREEN      0x05
+#define RAMBANK_DOCVIEW     0x06
 
 // puzzledata settings
 #define TLDT_REVEALED       (1 << 4)

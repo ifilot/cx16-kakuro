@@ -45,7 +45,7 @@ def create_fontmap_16(infile, outfile, rows):
                 for k,x in enumerate(range(0,8)):
                     px = img.getpixel((j*16+x, i*16+y))
                     if px[3] > 150:
-                        b |= (1 << (8-k-1))
+                        b |= (1 << (7-k))
                 data.append(b)
 
                 # last 8 columns
@@ -53,7 +53,7 @@ def create_fontmap_16(infile, outfile, rows):
                 for k,x in enumerate(range(8,16)):
                     px = img.getpixel((j*16+x, i*16+y))
                     if px[3] > 150:
-                        b |= (1 << (8-k-1))                
+                        b |= (1 << (7-k))                
                 data.append(b)
 
     with open(outfile, 'wb') as f:
@@ -74,7 +74,7 @@ def create_fontmap_8(infile, outfile, rows):
                 for k,x in enumerate(range(0,8)):
                     px = img.getpixel((j*8+x, i*8+y))
                     if px[3] > 150:
-                        b |= (1 << (8-k-1))
+                        b |= (1 << (7-k))
                 data.append(b)
 
     with open(outfile, 'wb') as f:

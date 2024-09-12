@@ -201,4 +201,16 @@ void print_clock_border(uint8_t y, uint8_t x);
  */
 void print_clock(const char* s, uint8_t y, uint8_t x);
 
+/**
+ * @brief Load puzzles data into memory
+ * 
+ */
+void load_puzzles();
+
+/**
+ * @brief Save puzzles data to SD-card
+ * 
+ */
+void save_puzzles();
+
 #endif // _PUZZLE_H
