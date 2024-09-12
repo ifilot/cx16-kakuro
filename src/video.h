@@ -27,6 +27,7 @@
 #include <stdint.h>
 
 #include "constants.h"
+#include "sound.h"
 
 /**
  * @brief Initialize screen

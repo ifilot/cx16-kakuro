@@ -226,6 +226,9 @@ void save_screen_state() {
     uint32_t map_base_addr;
     uint16_t i;
 
+    // fill sound buffer before performing this relatively expensive function
+    sound_fill_buffers();
+
     asm("lda #%b", RAMBANK_SCREEN);
     asm("sta 0");
 

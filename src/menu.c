@@ -64,9 +64,7 @@ void build_menu() {
 
     // print text
     printtext("Kakuro", 2, 2, 0x12);
-
-    // print version number
-    printtext("v/0.2.0", 28, 28, 0x1C);
+    printtext("Explanation  Options  About", 28, 6, 0x14);
 }
 
 /**
@@ -174,11 +172,41 @@ uint8_t menu_handle_mouse() {
                 }
 
                 current_puzzle_id = obtny * 8 + obtnx;
+                gamestate = GAME_PLAY;
                 return 1;
             }
         }
     } else {
         build_icon(obtny, obtnx, obtny * 8 + obtnx + 1, 0); // release
+    }
+
+    if(scrn_tile_y == 28) {
+        if(scrn_tile_x >= 6 && scrn_tile_x < 17) {
+            printtext("Explanation", 28, 6, 0x02);
+            idx = GAME_DOCVIEW_EXP;
+        } else if(scrn_tile_x >= 19 && scrn_tile_x < 26) {
+            printtext("Options", 28, 19, 0x02);
+            idx = GAME_OPTIONS;
+        } else if(scrn_tile_x >= 28 && scrn_tile_x < 34) {
+            printtext("About", 28, 28, 0x02);
+            idx = GAME_DOCVIEW_ABOUT;
+        } else {
+            printtext("Explanation  Options  About", 28, 6, 0x14);
+        }
+
+        if(mouse_buttons & 1) {
+            while(mouse_buttons != 0x00) {
+                asm("ldx #2");
+                asm("jsr $FF6B");
+                asm("sta %v", mouse_buttons);
+            }
+
+            gamestate = idx;
+            return 1;
+        }
+
+    } else {
+        printtext("Explanation  Options  About", 28, 6, 0x14);
     }
 
     return 0;

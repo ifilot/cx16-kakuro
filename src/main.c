@@ -32,15 +32,15 @@
 
 void main() {
     // load assets into memory
-    //init_screen();
+    init_screen();
 
     // enable mouse
     init_mouse();
     set_mouse_pointer(0x30);
 
     // load sound engine
-    // init_sound();
-    // start_bgmusic();
+    init_sound();
+    start_bgmusic();
 
     // load into VERA
     load_tiles("mtiles.dat", TILEBASE_MENU);
@@ -50,42 +50,47 @@ void main() {
 
     // load assets
     load_small_digits();
-    
-    docview_init_screen();
-    docview_load_file("KAKURO.TXT");
-    docview_show_file();
+
+    // load puzzles into memory
+    load_puzzles();
+
     while(1) {
+        clear_screen();
+        set_tilebase_layer0(TILEBASE_MENU);
+        build_menu();
+        while(1) {
+            if(menu_handle_mouse() == 1) {
+                break;
+            }
+            sound_fill_buffers();
+        }
+
+        if(gamestate & GAME_DOCVIEW_EXP) {
+            docview_init_screen();
+            docview_load_file("KAKURO.TXT");
+            docview_show_file();
+            while(gamestate & GAME_DOCVIEW_EXP) {
+                docview_handle_key();
+                sound_fill_buffers();
+            }
+            init_screen();
+        }
+
+        if(gamestate & GAME_PLAY) {
+            clear_screen();
+            set_tilebase_layer0(TILEBASE_GAME);
+            build_puzzle(current_puzzle_id);
+            while(!(gamestate & GAME_QUIT)) {
+                puzzle_handle_mouse();
+                puzzle_handle_keyboard();
+                show_game_time();
+
+                if(gamestate & GAME_COMPLETE) {
+                    break;
+                }
+                sound_fill_buffers();
+            }
+            save_puzzles();
+        }
     }
-
-    // while(1) {
-    //     clear_screen();
-
-    //     // load puzzles into memory
-    //     load_puzzles();
-
-    //     set_tilebase_layer0(TILEBASE_MENU);
-    //     build_menu();
-    //     while(1) {
-    //         if(menu_handle_mouse() == 1) {
-    //             break;
-    //         }
-    //         sound_fill_buffers();
-    //     }
-
-    //     clear_screen();
-    //     set_tilebase_layer0(TILEBASE_GAME);
-    //     build_puzzle(current_puzzle_id);
-    //     gamestate = GAME_PLAY;
-    //     while(!(gamestate & GAME_QUIT)) {
-    //         puzzle_handle_mouse();
-    //         puzzle_handle_keyboard();
-    //         show_game_time();
-
-    //         if(gamestate & GAME_COMPLETE) {
-    //             break;
-    //         }
-    //         sound_fill_buffers();
-    //     }
-    //     save_puzzles();
-    // }
 }

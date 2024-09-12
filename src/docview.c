@@ -148,3 +148,19 @@ void docview_show_file() {
     asm("lda 0");
     asm("sta 0");
 }
+
+/**
+ * @brief Handle key events
+ * 
+ */
+void docview_handle_key() {
+    static uint8_t keycode;
+
+    // grab keycode
+    asm("jsr $FFE4");
+    asm("sta %v", keycode);
+
+    if(keycode == KEYCODE_ESCAPE) {
+        gamestate = 0;
+    }
+}

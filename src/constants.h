@@ -81,10 +81,13 @@
 #define BANKED_RAM          0xA000
 
 // game states
-#define GAME_PLAY           0x00
+#define GAME_PLAY           (1 << 0)
 #define GAME_QUIT           (1 << 1)
 #define GAME_VERIFY         (1 << 2)
 #define GAME_COMPLETE       (1 << 3)
+#define GAME_DOCVIEW_EXP    (1 << 4)
+#define GAME_OPTIONS        (1 << 5)
+#define GAME_DOCVIEW_ABOUT  (1 << 7)
 
 // keycodes
 #define KEYCODE_DOWN        0x91

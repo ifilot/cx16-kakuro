@@ -23,7 +23,9 @@
 
 #include <ascii_charmap.h>
 
+#include "puzzle.h"
 #include "video.h"
+#include "sound.h"
 
 /**
  * @brief Initialize screen
@@ -55,5 +57,11 @@ void docview_load_file(const char* s);
  * @brief Print file contents onto screen
  */
 void docview_show_file();
+
+/**
+ * @brief Handle key events
+ * 
+ */
+void docview_handle_key();
 
 #endif // _DOCVIEW_H
