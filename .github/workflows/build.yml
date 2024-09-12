@@ -19,9 +19,7 @@ jobs:
     - name: Compile
       run: cd src && make
     - name: Package
-      run: cd src && zip CX16-KAKURO.ZIP KAKURO.PRG *.DAT *.ZSM *.TXT
-    - name: Package
-      run: zip --junk-paths CX16-KAKURO.ZIP src/KAKURO.PRG src/*.DAT src/*.ZSM
+      run: zip --junk-paths CX16-KAKURO.ZIP src/KAKURO.PRG src/*.DAT src/*.ZSM src/*.TXT
     - name: Upload package
       uses: actions/upload-artifact@v4
       with:
