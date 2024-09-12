@@ -4,6 +4,7 @@
         "stdlib.h": "c",
         "menu.h": "c",
         "video.h": "c",
-        "random": "c"
+        "random": "c",
+        "docview.h": "c"
     }
 }

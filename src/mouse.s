@@ -23,6 +23,11 @@
 .export _init_mouse
 
 .code
+
+;
+; Initialize mouse routines
+; 
+;
 .proc _init_mouse: near
     sec
     jsr X16::Kernal::SCREEN_MODE

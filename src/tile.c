@@ -105,7 +105,7 @@ void build_clue_tile_right(uint16_t vrampos, uint8_t value) {
 
 
     // reset pointer and copy to VRAM
-    ptr_des = (uint8_t*)(0xA000 + 8 * 4 * 10 + 256);
+    ptr_des = (uint8_t*)(BANKED_RAM + 8 * 4 * 10 + 256);
     map_base_addr = TILEBASE_CUSTOM + 256 * vrampos;
     VERA.address = map_base_addr;
     VERA.address_hi = map_base_addr >> 16;
@@ -164,7 +164,7 @@ void build_clue_tile_down(uint16_t vrampos, uint8_t value) {
     }
 
     // reset pointer and copy to VRAM
-    ptr_des = (uint8_t*)(0xA000 + 8 * 4 * 10 + 256);
+    ptr_des = (uint8_t*)(BANKED_RAM + 8 * 4 * 10 + 256);
     map_base_addr = TILEBASE_CUSTOM + 256 * vrampos;
     VERA.address = map_base_addr;
     VERA.address_hi = map_base_addr >> 16;

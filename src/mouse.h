@@ -21,6 +21,10 @@
 #ifndef _MOUSE_H
 #define _MOUSE_H
 
+/**
+ * @brief Initialize mouse routines
+ * 
+ */
 void __fastcall__ init_mouse();
 
 #endif // _MOUSE_H

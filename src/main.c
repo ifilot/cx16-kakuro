@@ -22,16 +22,13 @@
 #include <stdint.h>
 
 #include "video.h"
+#include "docview.h"
 #include "puzzle.h"
+
 #include "tile.h"
 #include "mouse.h"
 #include "menu.h"
 #include "sound.h"
-
-uint16_t puzzle_filesize; // file size of the puzzle files
-
-void load_puzzles(); // forward declaration
-void save_puzzles(); // forward declaration
 
 void main() {
     // load assets into memory
@@ -39,6 +36,7 @@ void main() {
 
     // enable mouse
     init_mouse();
+    set_mouse_pointer(0x30);
 
     // load sound engine
     init_sound();
@@ -46,67 +44,64 @@ void main() {
 
     // load into VERA
     load_tiles("mtiles.dat", TILEBASE_MENU);
-    load_tiles("tiles.dat", TILEBASE_GAME);
-    load_tiles("fontmap.dat", TILEBASE_FONT);
+    load_tiles("tiles.dat",  TILEBASE_GAME);
+    load_tiles("font16.dat", TILEBASE_FONT16);
+    load_tiles("font8.dat",  TILEBASE_FONT8);
 
     // load assets
     load_small_digits();
 
+    // load puzzles into memory
+    load_puzzles();
+
     while(1) {
+        /***********************************************************************
+         * MENU
+         **********************************************************************/
         clear_screen();
-
-        // load puzzles into memory
-        load_puzzles();
-
         set_tilebase_layer0(TILEBASE_MENU);
-        build_menu();
-        while(1) {
-            if(menu_handle_mouse() == 1) {
-                break;
-            }
+        menu_init();
+        while(menu_handle_mouse() == 0) {
             sound_fill_buffers();
         }
 
-        clear_screen();
-        set_tilebase_layer0(TILEBASE_GAME);
-        build_puzzle(current_puzzle_id);
-        gamestate = GAME_PLAY;
-        while(!(gamestate & GAME_QUIT)) {
-            puzzle_handle_mouse();
-            puzzle_handle_keyboard();
-            show_game_time();
-
-            if(gamestate & GAME_COMPLETE) {
-                break;
+        /***********************************************************************
+         * DOCVIEWER
+         **********************************************************************/
+        if((gamestate & GAME_DOCVIEW_EXP) || (gamestate & GAME_DOCVIEW_ABOUT)) {
+            docview_init_screen();
+            if(gamestate == GAME_DOCVIEW_EXP) {
+                docview_load_file("HELP.TXT");
             }
-            sound_fill_buffers();
+            if(gamestate == GAME_DOCVIEW_ABOUT) {
+                docview_load_file("ABOUT.TXT");
+            }
+            docview_show_file();
+            while((gamestate & GAME_DOCVIEW_EXP) || (gamestate & GAME_DOCVIEW_ABOUT)) {
+                docview_handle_key();
+                sound_fill_buffers();
+            }
+            init_screen();
         }
-        save_puzzles();
+
+        /***********************************************************************
+         * GAME
+         **********************************************************************/
+        if(gamestate & GAME_PLAY) {
+            clear_screen();
+            set_tilebase_layer0(TILEBASE_GAME);
+            build_puzzle(current_puzzle_id);
+            while(!(gamestate & GAME_QUIT)) {
+                puzzle_handle_mouse();
+                puzzle_handle_keyboard();
+                show_game_time();
+
+                if(gamestate & GAME_COMPLETE) {
+                    break;
+                }
+                sound_fill_buffers();
+            }
+            save_puzzles();
+        }
     }
-}
-
-void load_puzzles() {
-    asm("lda #%b", RAMBANK_PUZZLE);
-    asm("sta 0");
-
-    // load puzzle into memory
-    cbm_k_setnam("puzzle.dat");
-    cbm_k_setlfs(0, 8, 1);
-    puzzle_filesize = cbm_k_load(0, 0) - BANKED_RAM;
-
-    asm("lda 0");
-    asm("sta 0");
-}
-
-void save_puzzles() {
-    asm("lda #%b", RAMBANK_PUZZLE);
-    asm("sta 0");
-
-    // load puzzle into memory
-    cbm_k_setnam("@:puzzle.dat"); // force overwrite
-    cbm_k_setlfs(1, 8, 2);
-    cbm_k_save(BANKED_RAM, BANKED_RAM + puzzle_filesize);
-
-    asm("lda 0");
-    asm("sta 0");
 }

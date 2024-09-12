@@ -26,22 +26,26 @@ import sys
 ROOT = os.path.dirname(__file__)
 
 def main():
+    create_fontmap_16('font-tiles-16.png', 'FONT16.dat', 10)
+    create_fontmap_8('font-tiles-8.png', 'FONT8.dat', 6)
+
+def create_fontmap_16(infile, outfile, rows):
     """
-    Open .png file storing an 16x16 bitmap font, extract the relevant characters
+    Open .png file storing an 16 x 16 bitmap font, extract the relevant characters
     and store this at a 1bpp fontmap file.
     """
-    img = PIL.Image.open(os.path.join(ROOT, '..', 'tiles', 'font-tiles.png'))
+    img = PIL.Image.open(os.path.join(ROOT, '..', 'tiles', infile))
     
     data = bytearray()
-    for i in range(10):                                 # loop over rows
-        for j in range(16):                             # loop over columns
-            for y in  range(16):
+    for i in range(rows):                                 # loop over rows
+        for j in range(16):                               # loop over columns
+            for y in range(16):
                 # first 8 columns
                 b = np.uint8(0x00)
                 for k,x in enumerate(range(0,8)):
                     px = img.getpixel((j*16+x, i*16+y))
                     if px[3] > 150:
-                        b |= (1 << (8-k-1))
+                        b |= (1 << (7-k))
                 data.append(b)
 
                 # last 8 columns
@@ -49,10 +53,31 @@ def main():
                 for k,x in enumerate(range(8,16)):
                     px = img.getpixel((j*16+x, i*16+y))
                     if px[3] > 150:
-                        b |= (1 << (8-k-1))                
+                        b |= (1 << (7-k))                
                 data.append(b)
 
-    with open(sys.argv[1], 'wb') as f:
+    with open(outfile, 'wb') as f:
+        f.write(data)
+
+def create_fontmap_8(infile, outfile, rows):
+    """
+    Open .png file storing an 8 x 8 bitmap font, extract the relevant characters
+    and store this at a 1bpp fontmap file.
+    """
+    img = PIL.Image.open(os.path.join(ROOT, '..', 'tiles', infile))
+    
+    data = bytearray()
+    for i in range(rows):                                 # loop over rows
+        for j in range(16):                               # loop over columns
+            for y in range(8):
+                b = np.uint8(0x00)
+                for k,x in enumerate(range(0,8)):
+                    px = img.getpixel((j*8+x, i*8+y))
+                    if px[3] > 150:
+                        b |= (1 << (7-k))
+                data.append(b)
+
+    with open(outfile, 'wb') as f:
         f.write(data)
 
 if __name__ == '__main__':

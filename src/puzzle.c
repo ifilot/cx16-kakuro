@@ -38,6 +38,7 @@ uint8_t gamestate = 0;
 clock_t game_start_time = 0;
 clock_t prevtotal;
 char game_timebuffer[10];
+uint16_t puzzle_filesize; // file size of the puzzle files
 
 /**
  * @brief Build puzzle
@@ -193,6 +194,7 @@ void build_puzzle(uint8_t puzzle_id) {
     set_puzzle_status(current_puzzle_id+1, idx, 0, 0, 0);
 
     // keep track of time
+    print_clock_border(28, 31);
     game_start_time = clock();
     prevtotal = -1;
 }
@@ -283,7 +285,7 @@ void puzzle_handle_mouse() {
             asm("jsr $FF6B");
             asm("sta %v", mouse_buttons);
             }
-            gamestate |= GAME_QUIT;
+            puzzle_quit();
         }
     } else {
         set_tile(1, 38, 0x08, 0x00, LAYER0);
@@ -371,22 +373,7 @@ void puzzle_handle_keyboard() {
             }
         }
     } else if(keycode == KEYCODE_ESCAPE) {
-
-        save_screen_state();
-        build_window(12,5,2,30);
-        printtext("Are you sure you want to quit?", 12, 5, 0x12);
-        printtext("YES (Y) / NO (N)", 13, 5, 0x12);
-
-        while(keycode != 'Y' && keycode != 'N') {
-            asm("jsr $FFE4");
-            asm("sta %v", keycode);
-            sound_fill_buffers();
-        }
-        if(keycode == 'Y') {
-            gamestate |= GAME_QUIT;
-        } else {
-            restore_screen_state();
-        }
+        puzzle_quit();
     }
 }
 
@@ -411,7 +398,8 @@ void puzzle_generate_clues() {
                     idx++;
                 }
                 build_clue_tile_right(vrampos, c);
-                set_tile(offset_y + i*2, offset_x + j*2+1, 0x20+vrampos, 0x00, 0);
+                set_tile(offset_y + i*2, offset_x + j*2+1, 
+                    ((TILEBASE_CUSTOM - TILEBASE_GAME) >> 8)+vrampos, 0x00, 0);
                 vrampos++;
             }
 
@@ -425,9 +413,13 @@ void puzzle_generate_clues() {
                     idx += puzzlecols;
                 }
                 build_clue_tile_down(vrampos, c);
-                set_tile(offset_y + i*2+1, offset_x + j*2, 0x20+vrampos, 0x00, 0);
+                set_tile(offset_y + i*2+1, offset_x + j*2, 
+                    ((TILEBASE_CUSTOM - TILEBASE_GAME) >> 8)+vrampos, 0x00, 0);
                 vrampos++;
             }
+
+            // this can take quite some time, avoid the sound buffer from emptying
+            sound_fill_buffers();
         }
     }
 }
@@ -499,7 +491,7 @@ void puzzle_color_numbers() {
  */
 void show_game_time() {
     calculate_game_time();
-    printtext(game_timebuffer, 29, 32, 0x15);
+    print_clock(game_timebuffer, 28, 31);
 }
 
 /**
@@ -516,7 +508,7 @@ uint8_t retrieve_puzzle_status(uint8_t puzzle_id) {
     asm("lda #%b", RAMBANK_PUZZLE);
     asm("sta 0");
 
-    v = get_puzzle_pointer(puzzle_id);
+    v = get_puzzle_status_pointer(puzzle_id);
 
     // grab first byte
     ret = *v;
@@ -538,7 +530,7 @@ void set_puzzle_status(uint8_t puzzle_id, uint8_t status, uint8_t hours,
     asm("lda #%b", RAMBANK_PUZZLE);
     asm("sta 0");
 
-    v = get_puzzle_pointer(puzzle_id);
+    v = get_puzzle_status_pointer(puzzle_id);
 
     // increment pointer by number of knowns multiplied by 2
     *v++ = status;
@@ -558,7 +550,7 @@ void set_puzzle_status(uint8_t puzzle_id, uint8_t status, uint8_t hours,
  * @param puzzle_id 
  * @return uint8_t* 
  */
-uint8_t* get_puzzle_pointer(uint8_t puzzle_id) {
+uint8_t* get_puzzle_status_pointer(uint8_t puzzle_id) {
     uint8_t nrcells = 0;
     uint8_t *v;
 
@@ -630,6 +622,35 @@ void puzzle_complete() {
 
     // update game state
     gamestate |= GAME_COMPLETE;
+}
+
+/**
+ * @brief Routine to invoke when user wants to quit the puzzle
+ * 
+ */
+void puzzle_quit() {
+    static uint8_t keycode = 0xFF;
+    save_screen_state();
+    build_window(12,5,2,30);
+    printtext("Are you sure you want to quit?", 12, 5, 0x12);
+    printtext("YES (Y) / NO (N)", 13, 5, 0x12);
+
+    // consume previous keycode
+    while(keycode != 0) {
+        asm("jsr $FFE4");
+        asm("sta %v", keycode);
+    }
+
+    while(keycode != 'Y' && keycode != 'N') {
+        asm("jsr $FFE4");
+        asm("sta %v", keycode);
+        sound_fill_buffers();
+    }
+    if(keycode == 'Y') {
+        gamestate |= GAME_QUIT;
+    } else {
+        restore_screen_state();
+    }
 }
 
 /**
@@ -746,4 +767,70 @@ void build_window(uint8_t y, uint8_t x, uint8_t h, uint8_t w) {
             set_tile(y+i-1, x+j-1, 0x00, 0x00, LAYER1);
         }
     }
+}
+
+/**
+ * @brief Print the border around the clock
+ * 
+ * @param y y-position
+ * @param x x-position
+ */
+void print_clock_border(uint8_t y, uint8_t x) {
+    uint8_t i;
+    set_tile(y-1, x-1, 0x22, 0x00, LAYER0);         // top left
+    set_tile(y, x-1, 0x21, 0x00, LAYER0);           // mid left
+    set_tile(y+1, x-1, 0x22, MIRROR_Y, LAYER0);     // bottom left
+    for(i=0; i<8; i++) {
+        set_tile(y-1, x+i, 0x20, 0x00, LAYER0);
+        set_tile(y+1, x+i, 0x20, MIRROR_Y, LAYER0);
+    }
+    set_tile(y-1, x+8, 0x22, MIRROR_X, LAYER0);     // top right
+    set_tile(y, x+8, 0x21, MIRROR_X, LAYER0);       // mid right
+    set_tile(y+1, x+8, 0x22, MIRROR_XY, LAYER0);    // bottom right
+}
+
+void print_clock(const char* s, uint8_t y, uint8_t x) {
+    while(*s != 0) {
+        if(*s == ':') {
+            set_tile(y, x, 0x3A, 0x00, LAYER0);
+        } else {
+            set_tile(y, x, *s - '0' + 0x30, 0x00, LAYER0);
+        }
+        x++;
+        s++;
+    }
+}
+
+/**
+ * @brief Load puzzles data into memory
+ * 
+ */
+void load_puzzles() {
+    asm("lda #%b", RAMBANK_PUZZLE);
+    asm("sta 0");
+
+    // load puzzle into memory
+    cbm_k_setnam("puzzle.dat");
+    cbm_k_setlfs(0, 8, 1);
+    puzzle_filesize = cbm_k_load(0, 0) - BANKED_RAM;
+
+    asm("lda 0");
+    asm("sta 0");
+}
+
+/**
+ * @brief Save puzzles data to SD-card
+ * 
+ */
+void save_puzzles() {
+    asm("lda #%b", RAMBANK_PUZZLE);
+    asm("sta 0");
+
+    // load puzzle into memory
+    cbm_k_setnam("@:puzzle.dat"); // force overwrite
+    cbm_k_setlfs(1, 8, 2);
+    cbm_k_save(BANKED_RAM, BANKED_RAM + puzzle_filesize);
+
+    asm("lda 0");
+    asm("sta 0");
 }

@@ -134,7 +134,7 @@ void set_puzzle_status(uint8_t puzzle_id, uint8_t status, uint8_t hours,
  * @param puzzle_id 
  * @return uint8_t* 
  */
-uint8_t* get_puzzle_pointer(uint8_t puzzle_id);
+uint8_t* get_puzzle_status_pointer(uint8_t puzzle_id);
 
 /**
  * @brief Calculate the number of incorrect tiles
@@ -148,6 +148,12 @@ uint8_t get_nr_incorrect_tiles();
  * 
  */
 void puzzle_complete();
+
+/**
+ * @brief Routine to invoke when user wants to quit the puzzle
+ * 
+ */
+void puzzle_quit();
 
 /**
  * @brief Auxiliary function that computes the game time
@@ -178,5 +184,33 @@ void wait_for_key(uint8_t key);
  * @param w width
  */
 void build_window(uint8_t y, uint8_t x, uint8_t h, uint8_t w);
+
+/**
+ * @brief Print the border around the clock
+ * 
+ * @param y y-position
+ * @param x x-position
+ */
+void print_clock_border(uint8_t y, uint8_t x);
+
+/**
+ * @brief Print clock
+ * 
+ * @param y y-position on screen
+ * @param x x-position on screen
+ */
+void print_clock(const char* s, uint8_t y, uint8_t x);
+
+/**
+ * @brief Load puzzles data into memory
+ * 
+ */
+void load_puzzles();
+
+/**
+ * @brief Save puzzles data to SD-card
+ * 
+ */
+void save_puzzles();
 
 #endif // _PUZZLE_H

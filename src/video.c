@@ -21,14 +21,6 @@
 #include "video.h"
 
 /**
- * MEMORY MAP
- * ==========
- * 0x0000 - 0x6000 - Tileset for menu
- * 0x6000 - 0x8000 - Tileset for game
- * 
- */
-
-/**
  * @brief Initialize screen
  * 
  */
@@ -45,7 +37,7 @@ void init_screen() {
     // layer 1
     // On this layer, the values that the user fills in for the tiles are shown
     VERA.layer1.config   = (1 << 3) | (1 << 4) | (1 << 6);      // T256C
-    VERA.layer1.tilebase = (TILEBASE_FONT >> 9) | 0x03;         // 16 x 16 tiles
+    VERA.layer1.tilebase = (TILEBASE_FONT16 >> 9) | 0x03;       // 16 x 16 tiles
     VERA.layer1.mapbase  = MAPBASE1 >> 9;
 
     // enable both layers
@@ -70,10 +62,10 @@ void set_tilebase_layer0(uint16_t addr) {
  * @brief Load the tiles from file into video memory
  * 
  */
-void load_tiles(const char* filename, uint16_t addr) {
+void load_tiles(const char* filename, uint32_t addr) {
     cbm_k_setnam(filename);
     cbm_k_setlfs(0, 8, 2);
-    cbm_k_load(2, addr);
+    cbm_k_load(2 + (addr >> 16), addr);
 }
 
 /**
@@ -83,8 +75,8 @@ void load_tiles(const char* filename, uint16_t addr) {
  * 
  */
 void clear_screen() {
-    fill_layer(TILE_BACKGROUND, LAYER0, PALETTEBYTE);
-    fill_layer(0x20, LAYER1, 0x00);
+    fill_layer(TILE_BACKGROUND, LAYER0, PALETTEBYTE, 64, 64);
+    fill_layer(0x20, LAYER1, 0x00, 64, 64);
 }
 
 /**
@@ -92,8 +84,11 @@ void clear_screen() {
  *
  * @param tile_id background tile index
  * @param layer   which layer to fill
+ * @param b2      which tile info to use
+ * @param height  height of the map
+ * @param width   width of the map
  */
-void fill_layer(uint8_t tile_id, uint8_t layer, uint8_t b2) {
+void fill_layer(uint8_t tile_id, uint8_t layer, uint8_t b2, uint8_t height, uint8_t width) {
     uint8_t i,j;
     uint32_t map_base_addr;
 
@@ -103,8 +98,8 @@ void fill_layer(uint8_t tile_id, uint8_t layer, uint8_t b2) {
     VERA.address_hi = map_base_addr >> 16;
     VERA.address_hi |= 0b10000;
 
-    for (j=0; j<MAPHEIGHT; j++) {
-        for (i=0; i<MAPWIDTH; i++) {
+    for (j=0; j<height; j++) {
+        for (i=0; i<width; i++) {
             VERA.data0 = tile_id;       // background tile
             VERA.data0 = b2;            // palette offset data
         }
@@ -153,7 +148,7 @@ void swap_color_font_tiles(uint8_t col1, uint8_t col2) {
             end = (uint8_t*)(BANKED_RAM + 16*16*2);
         }
 
-        vera_addr = TILEBASE_FONT + (i+2) * 16 * 16 * 16;
+        vera_addr = TILEBASE_FONT16 + (i+2) * 16 * 16 * 16;
         VERA.address = vera_addr;
         VERA.address_hi = vera_addr >> 16;
         VERA.address_hi |= 0b10000;
@@ -167,7 +162,7 @@ void swap_color_font_tiles(uint8_t col1, uint8_t col2) {
             ptr++;
         }
 
-        vera_addr = TILEBASE_FONT + (i+2) * 16 * 16 * 16;
+        vera_addr = TILEBASE_FONT16 + (i+2) * 16 * 16 * 16;
         VERA.address = vera_addr;
         VERA.address_hi = vera_addr >> 16;
         VERA.address_hi |= 0b10000;
@@ -231,6 +226,9 @@ void save_screen_state() {
     uint32_t map_base_addr;
     uint16_t i;
 
+    // fill sound buffer before performing this relatively expensive function
+    sound_fill_buffers();
+
     asm("lda #%b", RAMBANK_SCREEN);
     asm("sta 0");
 
@@ -284,4 +282,21 @@ void restore_screen_state() {
 
     asm("lda 0");
     asm("sta 0");
+}
+
+/**
+ * @brief Set the mouse pointer
+ * 
+ * @param tile_id   which tile to use
+ */
+void set_mouse_pointer(uint8_t tile_id) {
+    unsigned long sprite_addr = 0x1FC00;
+    uint32_t graph_addr = TILEBASE_MENU + (tile_id << 8);
+
+    VERA.address = sprite_addr;
+    VERA.address_hi = sprite_addr >> 16;
+    VERA.address_hi |= 0b10000;
+
+    VERA.data0 = graph_addr >> 5;
+    VERA.data0 = (graph_addr >> 13) | (1 << 7);
 }

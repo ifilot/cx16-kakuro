@@ -27,6 +27,7 @@
 #include <stdint.h>
 
 #include "constants.h"
+#include "sound.h"
 
 /**
  * @brief Initialize screen
@@ -38,7 +39,7 @@ void init_screen();
  * @brief Load the tiles from file into memory
  * 
  */
-void load_tiles(const char* filename, uint16_t addr);
+void load_tiles(const char* filename, uint32_t addr);
 
 /**
  * @brief Set the tilebase offset for layer0
@@ -60,8 +61,11 @@ void clear_screen();
  *
  * @param tile_id background tile index
  * @param layer   which layer to fill
+ * @param b2      which tile info to use
+ * @param height  height of the map
+ * @param width   width of the map
  */
-void fill_layer(uint8_t tile_id, uint8_t layer, uint8_t b2);
+void fill_layer(uint8_t tile_id, uint8_t layer, uint8_t b2, uint8_t height, uint8_t width);
 
 /**
  * @brief Set a tile on LAYER1
@@ -118,5 +122,24 @@ void save_screen_state();
  * 
  */
 void restore_screen_state();
+
+/**
+ * @brief Set the mouse pointer
+ * 
+ * @param tile_id   which tile to use
+ */
+void set_mouse_pointer(uint8_t tile_id);
+
+/**
+ * @brief Initialize screen
+ * 
+ */
+void docview_init_screen();
+
+/**
+ * @brief Prepare screen to write text to it
+ * 
+ */
+void docview_clear_screen();
 
 #endif // _VIDEO_H
