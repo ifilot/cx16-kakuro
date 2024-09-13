@@ -26,8 +26,8 @@ import sys
 ROOT = os.path.dirname(__file__)
 
 def main():
-    create_fontmap_16('font-tiles-16.png', 'FONT16.dat', 10)
-    create_fontmap_8('font-tiles-8.png', 'FONT8.dat', 6)
+    create_fontmap_16('font-tiles-16.png', 'FONT16.DAT', 10)
+    create_fontmap_8('font-tiles-8.png', 'FONT8.DAT', 6)
 
 def create_fontmap_16(infile, outfile, rows):
     """
