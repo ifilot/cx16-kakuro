@@ -98,6 +98,22 @@
 #define KEYCODE_SPACE       0x20
 #define KEYCODE_ESCAPE      0x1B
 
+// puzzle window tiles
+#define WINDOW_LEFT_TOP     0x28
+#define WINDOW_LEFT_BOTTOM  0x29
+#define WINDOW_TOP          0x24
+#define WINDOW_BOTTOM       0x26
+#define WINDOW_RIGHT_TOP    0x23
+#define WINDOW_RIGHT_BOTTOM 0x29
+#define WINDOW_HOR_EDGE     0x25
+#define WINDOW_CORE         0x27
+
+// puzzle icon tiles
+#define ICON_QUIT           0x3B
+#define ICON_REVEAL         0x3C
+#define ICON_QUIT_SEL       0x3D
+#define ICON_REVEAL_SEL     0x3E
+
 // puzzle statuses
 #define STATUS_SOLVED       (1 << 0)
 #define STATUS_OPENED       (1 << 1)

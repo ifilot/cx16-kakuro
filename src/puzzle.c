@@ -185,8 +185,8 @@ void build_puzzle(uint8_t puzzle_id) {
     puzzle_set_revealed_cells();
 
     // build icons
-    set_tile(1, 38, 0x08, 0x00, LAYER0);
-    set_tile(2, 38, 0x09, 0x00, LAYER0);
+    set_tile(1, 38, ICON_QUIT, 0x00, LAYER0);
+    set_tile(2, 38, ICON_REVEAL, 0x00, LAYER0);
 
     // set puzzle status
     idx = retrieve_puzzle_status(current_puzzle_id + 1);
@@ -278,7 +278,7 @@ void puzzle_handle_mouse() {
     tpy = *mouse_y >> 4;
 
     if(tpy == 1 && tpx == 38) {
-        set_tile(1, 38, 0x0A, 0x00, LAYER0);
+        set_tile(1, 38, ICON_QUIT_SEL, 0x00, LAYER0);
         if(mouse_buttons & 1) {
             while(mouse_buttons != 0x00) {
             asm("ldx #2");
@@ -288,11 +288,11 @@ void puzzle_handle_mouse() {
             puzzle_quit();
         }
     } else {
-        set_tile(1, 38, 0x08, 0x00, LAYER0);
+        set_tile(1, 38, ICON_QUIT, 0x00, LAYER0);
     }
 
     if(tpy == 2 && tpx == 38) {
-        set_tile(2, 38, 0x0B, 0x00, LAYER0);
+        set_tile(2, 38, ICON_REVEAL_SEL, 0x00, LAYER0);
         if(mouse_buttons & 1) {
             while(mouse_buttons != 0x00) {
                 asm("ldx #2");
@@ -303,7 +303,7 @@ void puzzle_handle_mouse() {
             puzzle_color_numbers();
         }
     } else {
-        set_tile(2, 38, 0x09, 0x00, LAYER0);
+        set_tile(2, 38, ICON_REVEAL, 0x00, LAYER0);
     }
 
     // release highlight
@@ -739,25 +739,25 @@ void build_window(uint8_t y, uint8_t x, uint8_t h, uint8_t w) {
     uint8_t i,j;
 
     // top and bottom borders
-    set_tile(y-1, x-1, 0x15, 0x00, LAYER0);     // left-top
-    set_tile(y+h, x-1, 0x16, 0x00, LAYER0);     // left-bottom
+    set_tile(y-1, x-1, WINDOW_LEFT_TOP, 0x00, LAYER0);          // left-top
+    set_tile(y+h, x-1, WINDOW_LEFT_BOTTOM, 0x00, LAYER0);       // left-bottom
     for(i=0; i<w; i++) {
-        set_tile(y-1, x+i, 0x11, 0x00, LAYER0); // top layer
-        set_tile(y+h, x+i, 0x13, 0x00, LAYER0); // bottom layer
+        set_tile(y-1, x+i, WINDOW_TOP, 0x00, LAYER0);           // top layer
+        set_tile(y+h, x+i, WINDOW_BOTTOM, 0x00, LAYER0);        // bottom layer
     }
-    set_tile(y-1, x+w, 0x10, MIRROR_X, LAYER0); // right-top
-    set_tile(y+h, x+w, 0x16, MIRROR_X, LAYER0); // right-bottom
+    set_tile(y-1, x+w, WINDOW_RIGHT_TOP, MIRROR_X, LAYER0);     // right-top
+    set_tile(y+h, x+w, WINDOW_RIGHT_BOTTOM, MIRROR_X, LAYER0);  // right-bottom
 
     // left and right borders
     for(i=0; i<h; i++) {
-        set_tile(y+i, x-1, 0x12, 0x00, LAYER0);
-        set_tile(y+i, x+w, 0x12, MIRROR_X, LAYER0);
+        set_tile(y+i, x-1, WINDOW_HOR_EDGE, 0x00, LAYER0);
+        set_tile(y+i, x+w, WINDOW_HOR_EDGE, MIRROR_X, LAYER0);
     }
 
     // core
     for(i=0; i<h; i++) {
         for(j=0; j<w; j++) {
-            set_tile(y+i, x+j, 0x14, MIRROR_X, LAYER0);
+            set_tile(y+i, x+j, WINDOW_CORE, MIRROR_X, LAYER0);
         }
     }
 
