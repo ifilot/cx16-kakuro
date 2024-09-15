@@ -38,7 +38,19 @@ uint8_t gamestate = 0;
 clock_t game_start_time = 0;
 clock_t prevtotal;
 char game_timebuffer[10];
-uint16_t puzzle_filesize; // file size of the puzzle files
+uint16_t puzzle_filesize;       // file size of the puzzle files
+extern uint8_t pco = 2;         // puzzle color offset
+
+/**
+ * @brief Clears the screen
+ * 
+ * Set background tiles everywhere and sets foreground to transparent
+ * 
+ */
+void puzzle_clear_screen() {
+    fill_layer(TILE_BACKGROUND + (pco << 3), LAYER0, PALETTEBYTE, 64, 64);
+    fill_layer(0x20, LAYER1, 0x00, 64, 64);
+}
 
 /**
  * @brief Build puzzle
@@ -158,20 +170,20 @@ void build_puzzle(uint8_t puzzle_id) {
             c = puzzledata[idx];
 
             if(c == 0) {
-                set_tile(offset_y + i*2, offset_x + j*2, TILE_BLOCKED, 0x00, 0);
-                set_tile(offset_y + i*2+1, offset_x + j*2, TILE_BLOCKED, (1 << 3), 0);
-                set_tile(offset_y + i*2, offset_x + j*2+1, TILE_BLOCKED, (1 << 2), 0);
-                set_tile(offset_y + i*2+1, offset_x + j*2+1, TILE_BLOCKED, (1 << 2) | (1 << 3), 0);
+                set_tile(offset_y + i*2, offset_x + j*2, TILE_BLOCKED + (pco << 3), 0x00, 0);
+                set_tile(offset_y + i*2+1, offset_x + j*2, TILE_BLOCKED + (pco << 3), (1 << 3), 0);
+                set_tile(offset_y + i*2, offset_x + j*2+1, TILE_BLOCKED + (pco << 3), (1 << 2), 0);
+                set_tile(offset_y + i*2+1, offset_x + j*2+1, TILE_BLOCKED + (pco << 3), (1 << 2) | (1 << 3), 0);
             } else if(c > 0 && c < 0x0A) { // numeric values
-                set_tile(offset_y + i*2, offset_x + j*2, TILE_EMPTY, 0x00, 0);
-                set_tile(offset_y + i*2+1, offset_x + j*2, TILE_EMPTY, (1 << 3), 0);
-                set_tile(offset_y + i*2, offset_x + j*2+1, TILE_EMPTY, (1 << 2), 0);
-                set_tile(offset_y + i*2+1, offset_x + j*2+1, TILE_EMPTY, (1 << 2) | (1 << 3), 0);
+                set_tile(offset_y + i*2, offset_x + j*2, TILE_EMPTY + (pco << 3), 0x00, 0);
+                set_tile(offset_y + i*2+1, offset_x + j*2, TILE_EMPTY + (pco << 3), (1 << 3), 0);
+                set_tile(offset_y + i*2, offset_x + j*2+1, TILE_EMPTY + (pco << 3), (1 << 2), 0);
+                set_tile(offset_y + i*2+1, offset_x + j*2+1, TILE_EMPTY + (pco << 3), (1 << 2) | (1 << 3), 0);
             } else {
-                set_tile(offset_y + i*2, offset_x + j*2, TILE_CLUE1, 0x00, 0);
-                set_tile(offset_y + i*2+1, offset_x + j*2, TILE_CLUE2, 0x00, 0);
-                set_tile(offset_y + i*2, offset_x + j*2+1, TILE_CLUE2, (1 << 2) | (1 << 3), 0);
-                set_tile(offset_y + i*2+1, offset_x + j*2+1, TILE_CLUE1, (1 << 2) | (1 << 3), 0);
+                set_tile(offset_y + i*2, offset_x + j*2, TILE_CLUE1 + (pco << 3), 0x00, 0);
+                set_tile(offset_y + i*2+1, offset_x + j*2, TILE_CLUE2 + (pco << 3), 0x00, 0);
+                set_tile(offset_y + i*2, offset_x + j*2+1, TILE_CLUE2 + (pco << 3), (1 << 2) | (1 << 3), 0);
+                set_tile(offset_y + i*2+1, offset_x + j*2+1, TILE_CLUE1 + (pco << 3), (1 << 2) | (1 << 3), 0);
             }
 
             if((c & 0xF) == 0) {
@@ -310,7 +322,7 @@ void puzzle_handle_mouse() {
     if(ccurx != mp_ocurx || ccury != mp_ocury) {
         idx = mp_ocury * puzzlecols + mp_ocurx;
         if((puzzledata[idx] & TLDT_LOCKED) == 0) {
-            set_puzzle_tile(mp_ocury, mp_ocurx, TILE_EMPTY);
+            set_puzzle_tile(mp_ocury, mp_ocurx, TILE_EMPTY + (pco << 3));
         }
     }
 
@@ -318,7 +330,7 @@ void puzzle_handle_mouse() {
     if(ccurx >= 0 && ccurx < puzzlecols && ccury >=0 && ccury < puzzlerows) {
         idx = ccury * puzzlecols + ccurx;
         if((puzzledata[idx] & (TLDT_LOCKED | TLDT_REVEALED)) == 0) {
-            set_puzzle_tile(ccury, ccurx, TILE_HIGHLIGHT);
+            set_puzzle_tile(ccury, ccurx, TILE_HIGHLIGHT + (pco << 3));
             mp_ocurx = ccurx;
             mp_ocury = ccury;
         }
@@ -777,24 +789,24 @@ void build_window(uint8_t y, uint8_t x, uint8_t h, uint8_t w) {
  */
 void print_clock_border(uint8_t y, uint8_t x) {
     uint8_t i;
-    set_tile(y-1, x-1, 0x22, 0x00, LAYER0);         // top left
-    set_tile(y, x-1, 0x21, 0x00, LAYER0);           // mid left
-    set_tile(y+1, x-1, 0x22, MIRROR_Y, LAYER0);     // bottom left
+    set_tile(y-1, x-1, CLOCK_COR + (pco * 3), 0x00, LAYER0);         // top left
+    set_tile(y, x-1, CLOCK_VER + (pco * 3), 0x00, LAYER0);           // mid left
+    set_tile(y+1, x-1, CLOCK_COR + (pco * 3), MIRROR_Y, LAYER0);     // bottom left
     for(i=0; i<8; i++) {
-        set_tile(y-1, x+i, 0x20, 0x00, LAYER0);
-        set_tile(y+1, x+i, 0x20, MIRROR_Y, LAYER0);
+        set_tile(y-1, x+i, CLOCK_HOR + (pco * 3), 0x00, LAYER0);
+        set_tile(y+1, x+i, CLOCK_HOR + (pco * 3), MIRROR_Y, LAYER0);
     }
-    set_tile(y-1, x+8, 0x22, MIRROR_X, LAYER0);     // top right
-    set_tile(y, x+8, 0x21, MIRROR_X, LAYER0);       // mid right
-    set_tile(y+1, x+8, 0x22, MIRROR_XY, LAYER0);    // bottom right
+    set_tile(y-1, x+8, CLOCK_COR + (pco * 3), MIRROR_X, LAYER0);     // top right
+    set_tile(y, x+8, CLOCK_VER + (pco * 3), MIRROR_X, LAYER0);       // mid right
+    set_tile(y+1, x+8, CLOCK_COR + (pco * 3), MIRROR_XY, LAYER0);    // bottom right
 }
 
 void print_clock(const char* s, uint8_t y, uint8_t x) {
     while(*s != 0) {
         if(*s == ':') {
-            set_tile(y, x, 0x3A, 0x00, LAYER0);
+            set_tile(y, x, 0x4A, 0x00, LAYER0);
         } else {
-            set_tile(y, x, *s - '0' + 0x30, 0x00, LAYER0);
+            set_tile(y, x, *s - '0' + 0x40, 0x00, LAYER0);
         }
         x++;
         s++;

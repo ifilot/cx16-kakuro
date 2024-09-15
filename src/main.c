@@ -88,7 +88,7 @@ void main() {
          * GAME
          **********************************************************************/
         if(gamestate & GAME_PLAY) {
-            clear_screen();
+            puzzle_clear_screen();
             set_tilebase_layer0(TILEBASE_GAME);
             build_puzzle(current_puzzle_id);
             while(!(gamestate & GAME_QUIT)) {

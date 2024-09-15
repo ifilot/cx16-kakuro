@@ -24,11 +24,11 @@
 // graphics positioning in VRAM
 #define TILEBASE_MENU       0x00000      // 6*16 tiles at 8bpp
 #define TILEBASE_GAME       0x06000      // 2*16 tiles at 8bpp
-#define TILEBASE_CUSTOM     0x0A000      // 4*16 tiles at 8bpp
-#define MAPBASE0            0x0D000      // 64 x 64 tiles
+#define TILEBASE_CUSTOM     0x0B000      // 4*16 tiles at 8bpp
 #define TILEBASE_FONT16     0x14000      // 10 * 16 tiles at 1bpp
 #define TILEBASE_FONT8      0x16000      // 6 * 16 tiles at 1bpp
-#define MAPBASE1            0x18000      // 64 x 64 tiles
+#define MAPBASE0            0x18000      // 64 x 64 tiles
+#define MAPBASE1            0x1A000      // 64 x 64 tiles
 #define PALETTEBASE         0x1FA20
 #define PALETTEBYTE         0x00
 #define BANKED_RAM          0xA000
@@ -109,10 +109,15 @@
 #define WINDOW_CORE         0x27
 
 // puzzle icon tiles
-#define ICON_QUIT           0x3B
-#define ICON_REVEAL         0x3C
-#define ICON_QUIT_SEL       0x3D
-#define ICON_REVEAL_SEL     0x3E
+#define ICON_QUIT           0x4B
+#define ICON_REVEAL         0x4C
+#define ICON_QUIT_SEL       0x4D
+#define ICON_REVEAL_SEL     0x4E
+
+// puzzle clock
+#define CLOCK_HOR           0x30
+#define CLOCK_VER           0x31
+#define CLOCK_COR           0x32
 
 // puzzle statuses
 #define STATUS_SOLVED       (1 << 0)
