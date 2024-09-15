@@ -34,18 +34,14 @@ void menu_init() {
     // window background
     for(i=2; i<=27; i++) {
         set_tile(i, 1, 0x04, 0x00, LAYER0);
-        for(j=2; j<=37; j++) {
-            set_tile(i, j, 0x06, 0x00, LAYER0);
-        }
+        fill_line(0x06, LAYER0, 0x00, i, 2, 64, 36);
         set_tile(i, 38, 0x04, MIRROR_X, LAYER0);
     }
 
     // window title
     set_tile(1, 1, 0x0B, 0x00, LAYER0);
-    for(j=2; j<=37; j++) {
-        set_tile(1, j, 0x03, 0x00, LAYER0);
-        set_tile(28, j, 0x05, 0x00, LAYER0);
-    }
+    fill_line(0x03, LAYER0, 0x00, 1, 2, 64, 36);
+    fill_line(0x05, LAYER0, 0x00, 28, 2, 64, 36);
     set_tile(1, 38, 0x02, MIRROR_X, LAYER0);
 
     if((menu_page+1) < MAX_PAGES) {

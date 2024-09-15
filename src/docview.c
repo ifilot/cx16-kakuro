@@ -48,8 +48,22 @@ void docview_init_screen() {
  * 
  */
 void docview_clear_screen() {
-    fill_layer(TILE_BACKGROUND, LAYER0, PALETTEBYTE, 64, 64);
-    fill_layer(0x20, LAYER1, 0x00, 64, 128);
+    uint8_t i;
+
+    fill_layer(TILE_BACKGROUND, LAYER1, PALETTEBYTE, 64, 128);
+    
+    // window background
+    for(i=2; i<=27; i++) {
+        set_tile(i, 1, 0x04, 0x00, LAYER0);
+        fill_line(0x06, LAYER0, 0x00, i, 2, 64, 36);
+        set_tile(i, 38, 0x04, MIRROR_X, LAYER0);
+    }
+
+    // window title
+    set_tile(1, 1, 0x0B, 0x00, LAYER0);
+    fill_line(0x03, LAYER0, 0x00, 1, 2, 64, 36);
+    fill_line(0x05, LAYER0, 0x00, 28, 2, 64, 36);
+    set_tile(1, 38, 0x02, MIRROR_X, LAYER0);
 }
 
 /**
@@ -113,7 +127,7 @@ void docview_load_file(const char* filename) {
  */
 void docview_show_file() {
     uint8_t x = 0;
-    uint8_t y = 0;
+    uint8_t y = 4;
     uint8_t *s = (uint8_t*)(BANKED_RAM);
     uint32_t map_base_addr = MAPBASE1 + (y << 7 + x) * 2;
 

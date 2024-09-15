@@ -1,51 +1,52 @@
-======
-KAKURO
-======
+  KAKURO
+  
+  Introduction
+  ------------
+  Kakuro is a logic-based number puzzle game, often described as a cross 
+  between a crossword and Sudoku. In this game, players fill a grid with 
+  digits from 1 to 9, with the objective of matching the sum of numbers in 
+  each row or column to a given target. However, no number can be repeated 
+  within a single sum. Each clue is represented as a small number in a black 
+  cell, dictating the sum of the digits to be placed in the adjacent white 
+  cells.
 
-Introduction
-------------
-Kakuro is a logic-based number puzzle game, often described as a cross between a
-crossword and Sudoku. In this game, players fill a grid with digits from 1 to 9,
-with the objective of matching the sum of numbers in each row or column to a
-given target. However, no number can be repeated within a single sum. Each clue
-is represented as a small number in a black cell, dictating the sum of the
-digits to be placed in the adjacent white cells.
+  Rules
+  ----- 
+  * Kakuro is played on a grid of blank and black cells, where the goal is to
+    fill in the blank cells with numbers. Some black cells have "clues" (a 
+    small number in the corner) indicating the sum of the numbers that must 
+    appear in the consecutive blank cells in that row or column.
+  * Only the numbers 1 through 9 can be used to fill the blank cells.
+  * Within a "run" (a sequence of consecutive blank cells either in a row or a 
+    column), the numbers cannot repeat. Each number within a run must be 
+    unique.
+  * The numbers in a run must add up to the sum indicated by the clue in the 
+    black cell.
+  * Each valid combination of numbers (in a run) must be used only once in the 
+    entire puzzle. This means that no two different runs with the same number 
+    of blank cells can have identical number combinations that sum to the same 
+    value.
 
-Rules
------ 
-* Kakuro is played on a grid of blank and black cells, where the goal is to fill
-  in the blank cells with numbers. Some black cells have "clues" (a small number
-  in the corner) indicating the sum of the numbers that must appear in the 
-  consecutive blank cells in that row or column.
-* Only the numbers 1 through 9 can be used to fill the blank cells.
-* Within a "run" (a sequence of consecutive blank cells either in a row or a 
-  column), the numbers cannot repeat. Each number within a run must be unique.
-* The numbers in a run must add up to the sum indicated by the clue in the black
-  cell.
-* Each valid combination of numbers (in a run) must be used only once in the 
-  entire puzzle. This means that no two different runs with the same number of 
-  blank cells can have identical number combinations that sum to the same value.
+  Puzzles
+  -------
+  * The game contains (currently) 96 puzzles of various sizes and difficulty 
+    levels. The size and difficulty are indicated by the number (6-10) in the
+    menu screen and the number of stars, respectively.
+  * If a puzzle has been opened before, but not completed, it is colored in a
+    light green color. Completed puzzles are colored in a dark green shade. 
+    The game will remember which puzzles have been completed before. You can 
+    always choose to play a completed game again.
 
-Puzzles
--------
-* The game contains (currently) 96 puzzles of various sizes and difficulty 
-  levels. The size and difficulty are indicated by the number (6-10) in the
-  menu screen and the number of stars, respectively.
-* If a puzzle has been opened before, but not completed, it is colored in a
-  light green color. Completed puzzles are colored in a dark green shade. The
-  game will remember which puzzles have been completed before. You can always
-  choose to play a completed game again.
+  Gameplay
+  --------
+  * Move your mouse cursor over the cell you want to fill and press a digit 
+    (1-9) on your keyboard to enter a number.
+  * Once all the cells are correctly filled, the game will notify you 
+    automatically. 
+  * If you'd like to validate your progress during the game, click the 
+    green/red button at the top-right corner of the screen. 
+  * To exit the game, click the 'X' button or press the <ESCAPE> key.
 
-Gameplay
---------
-* Move your mouse cursor over the cell you want to fill and press a digit (1-9) on
-  your keyboard to enter a number. 
-* Once all the cells are correctly filled, the game will notify you 
-  automatically. 
-* If you'd like to validate your progress during the game, click the green/red 
-  button at the top-right corner of the screen. 
-* To exit the game, click the 'X' button or press the <ESCAPE> key.
-
----------------------------------
-PRESS ESCAPE TO LEAVE THIS SCREEN
----------------------------------
+  ---------------------------------
+  PRESS ESCAPE TO LEAVE THIS SCREEN
+  ---------------------------------
