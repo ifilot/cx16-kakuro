@@ -68,12 +68,12 @@ this repository and automatically embedded in the `.PRG` file.
 
 ## Community guidelines
 
-* Contributions to CX16-Othello are always welcome and appreciated. Before doing so,
+* Contributions to CX16-Kakuro are always welcome and appreciated. Before doing so,
   please first read the [CONTRIBUTING](CONTRIBUTING.md) guide.
 * For reporting issues or problems with the software, you are kindly invited to
-  to open a [new issue with the bug label](https://github.com/ifilot/cx16-othello/issues/new?labels=bug).
-* If you seek support in using CX16-Othello, please 
-  [open an issue with the question](https://github.com/ifilot/cx16-othello/issues/new?labels=question)
+  to open a [new issue with the bug label](https://github.com/ifilot/cx16-kakuro/issues/new?labels=bug).
+* If you seek support in using CX16-Kakuro, please 
+  [open an issue with the question](https://github.com/ifilot/cx16-kakuro/issues/new?labels=question)
   label.
 * If you wish to contact the developers, please send an e-mail to ivo@ivofilot.nl.
 
