@@ -1,13 +1,12 @@
 /* Journal playfield: 2bpp scenery underneath a 4bpp tile overlay.
  * Board changes touch four tile-map entries; no bitmap redraw is needed. */
 #include "playfield.h"
+#include "tile_layout.h"
 #include "puzzle.h"
 #include "transition.h"
 
 #define GRAPHICS 0x13000UL
 #define GAME_MAP 0x1E200UL
-#define FONT_TILE 285
-#define BORDER_TILE 344
 extern uint8_t* userdata;
 extern const uint8_t* menu_blit_source;
 extern uint8_t menu_blit_width,menu_blit_height;
@@ -31,7 +30,7 @@ void playfield_text(const char* value,uint8_t row,uint8_t col) {
         c=*value++;
         if(c>=97 && c<=122)c-=32;
         if(c<32 || c>90)c=32;
-        map_tile(row,col++,FONT_TILE+c-32,0);
+        map_tile(row,col++,GTILE_FONT_FIRST+c-32,0);
     }
 }
 
@@ -87,7 +86,7 @@ void playfield_enter(void) {
     if(puzzlecols<10)playfield_text(shape,8,28);
     else playfield_text("10X10",8,28);
     status=retrieve_puzzle_status(id);
-    for(i=0;i<5;i++)map_tile(11,28+i,i<((status>>6)+1) ? 349 : 350,0);
+    for(i=0;i<5;i++)map_tile(11,28+i,i<((status>>6)+1) ? GTILE_DIFFICULTY_FILLED : GTILE_DIFFICULTY_OUTLINE,0);
     old_hover=-1;old_verify=255;
     playfield_controls(-1);
 }
@@ -102,15 +101,15 @@ void playfield_cell(uint8_t row,uint8_t col) {
     uint8_t data=puzzledata[index];
     uint8_t type,flags=0;
     uint16_t tile;
-    if(!(data&15))type=(data&(TLDT_HCLUE|TLDT_VCLUE)) ? 1 : 0;
-    else if(data&TLDT_REVEALED)type=21+value;
+    if(!(data&15))type=(data&(TLDT_HCLUE|TLDT_VCLUE)) ? CELL_CLUE : CELL_BLOCKED;
+    else if(data&TLDT_REVEALED)type=CELL_GIVEN_DIGITS+value-1;
     else if(ccurx==col && ccury==row) {
-        type=12+value;
+        type=CELL_SELECTED_EMPTY+value;
         if(value && (gamestate&GAME_VERIFY) && value!=(data&15))flags=0x10;
-    } else if(!value)type=2;
-    else if(gamestate&GAME_VERIFY)type=(value==(data&15) ? 30 : 39)+value;
-    else type=2+value;
-    tile=1+type*4;
+    } else if(!value)type=CELL_EMPTY;
+    else if(gamestate&GAME_VERIFY)type=(value==(data&15) ? CELL_CORRECT_DIGITS : CELL_INCORRECT_DIGITS)+value-1;
+    else type=CELL_DIGITS+value-1;
+    tile=GTILE_CELL_FIRST+type*4;
     map_tile(offset_y+row*2,offset_x+col*2,tile,flags);
     map_tile(offset_y+row*2,offset_x+col*2+1,tile+1,flags);
     map_tile(offset_y+row*2+1,offset_x+col*2,tile+2,flags);
@@ -118,7 +117,7 @@ void playfield_cell(uint8_t row,uint8_t col) {
 }
 
 void playfield_clue(uint8_t row,uint8_t col,uint8_t value,uint8_t down) {
-    map_tile(offset_y+row*2+down,offset_x+col*2+!down,197+(value-2)*2+down,0);
+    map_tile(offset_y+row*2+down,offset_x+col*2+!down,GTILE_CLUE_FIRST+(value-2)*2+down,0);
 }
 
 void playfield_clock(const char* value) {playfield_text(value,15,28);}
@@ -126,14 +125,14 @@ void playfield_clock(const char* value) {playfield_text(value,15,28);}
 void playfield_window(uint8_t row,uint8_t col,uint8_t height,uint8_t width) {
     uint8_t x,y;
     for(y=row-1;y<=row+height;y++)for(x=col-1;x<=col+width;x++) {
-        uint16_t tile=FONT_TILE;
+        uint16_t tile=GTILE_FONT_FIRST;
         uint8_t flags=0;
-        if(y==row-1)tile=BORDER_TILE;
-        if(y==row+height)tile=BORDER_TILE+3;
+        if(y==row-1)tile=GTILE_BORDER_FIRST;
+        if(y==row+height)tile=GTILE_BORDER_FIRST+3;
         if(x==col-1 || x==col+width) {
-            if(y==row-1)tile=BORDER_TILE+2;
-            else if(y==row+height)tile=BORDER_TILE+4;
-            else tile=BORDER_TILE+1;
+            if(y==row-1)tile=GTILE_BORDER_FIRST+2;
+            else if(y==row+height)tile=GTILE_BORDER_FIRST+4;
+            else tile=GTILE_BORDER_FIRST+1;
             if(x==col+width)flags=MIRROR_X;
         }
         map_tile(y,x,tile,flags);

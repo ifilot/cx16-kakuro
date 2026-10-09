@@ -79,7 +79,7 @@ def controls_sheet(data,items):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--output',type=Path,default=ROOT/'assets/tiles/generated')
+    parser.add_argument('--output',type=Path,default=ROOT/'build/tilesheets')
     args=parser.parse_args();output=args.output;output.mkdir(parents=True,exist_ok=True)
     raw=(SRC/'GTILES.DAT').read_bytes()
     assert len(raw)%128==0

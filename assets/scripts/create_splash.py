@@ -19,7 +19,7 @@ PALETTE_INDICES = (65, 35, 33, 18)
 
 def main():
     output = Path(sys.argv[1]) if len(sys.argv) > 1 else Path('.')
-    source = ASSETS / 'splash/comparisons/courtyard-640x480-4colors.png'
+    source = ASSETS / 'backgrounds/start.png'
     with Image.open(source) as image:
         if image.size != (WIDTH, HEIGHT):
             raise ValueError('The selected splash must be exactly 640x480')

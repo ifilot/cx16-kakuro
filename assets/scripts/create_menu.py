@@ -101,11 +101,11 @@ def main():
     output.mkdir(parents=True, exist_ok=True)
     palette = Image.new('P', (1, 1))
     palette.putpalette([value for color in COLORS for value in color] * 64)
-    with Image.open(ASSETS / 'menu/concepts/03-puzzle-journal-source.png') as source:
+    with Image.open(ASSETS / 'backgrounds/journal.png') as source:
         image = source.convert('RGB').resize((640, 480), Image.Resampling.LANCZOS)
         indices = np.asarray(image.quantize(palette=palette, dither=Image.Dither.FLOYDSTEINBERG)) % 4
     image = Image.fromarray(np.array(COLORS, dtype=np.uint8)[indices])
-    font = Image.open(ASSETS / 'tiles/font-tiles-8.png').convert('RGBA')
+    font = Image.open(ASSETS / 'tiles/ui-charmap.png').convert('RGBA')
     paper, rose, brown, ink = COLORS
     draw = ImageDraw.Draw(image)
     draw.rectangle((176,24,463,79), fill=paper, outline=brown)

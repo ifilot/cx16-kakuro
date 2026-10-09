@@ -1,31 +1,17 @@
-"""Five-petal difficulty marks inspired by the DOS Kakuro blossom renderer.
+"""Render menu difficulty from the same PNG source used by the game atlas."""
+from functools import lru_cache
+from pathlib import Path
+from PIL import Image
 
-Native 13x13 silhouette, adapted to the CX16's paper/rose/brown palette.
-"""
-from PIL import ImageDraw
-
+@lru_cache(maxsize=1)
+def source():
+    return Image.open(Path(__file__).resolve().parents[1]/'tiles/difficulty.png').convert('RGBA')
 
 def blossom(image,x,y,filled,colors,mini=False,face=None):
-    paper,rose,brown,ink=colors
     if mini:
-        # Five petals at card scale; a single foreground color stays legible
-        # on paper, rose and selected brown cards.
-        color=face if face is not None else rose
-        rows=('00100','11111','01110','11011','01010')
-        draw=ImageDraw.Draw(image)
-        for row,line in enumerate(rows):
-            for col,pixel in enumerate(line):
-                if pixel=='1':draw.point((x+col,y+row),fill=color)
-        return
-    centers=((6,2),(2,5),(10,5),(4,10),(8,10))
-    def inside(px,py):
-        return any((px-cx)**2+(py-cy)**2<=6 for cx,cy in centers) or (px-6)**2+(py-6)**2<=9
-    draw=ImageDraw.Draw(image)
-    for row in range(13):
-        for col in range(13):
-            if not inside(col,row):continue
-            edge=any(not inside(col+dx,row+dy) for dx,dy in ((-1,0),(1,0),(0,-1),(0,1)))
-            if filled or edge:draw.point((x+col,y+row),fill=(brown if edge else rose) if filled else rose)
-    if filled:
-        for dx,dy in ((6,5),(5,6),(7,6),(6,7)):
-            draw.point((x+dx,y+dy),fill=paper)
+        mask=source().crop((32,0,37,5)).getchannel('A')
+        image.paste(face if face is not None else colors[1],(x,y),mask)
+    else:
+        left=1 if filled else 17
+        sprite=source().crop((left,1,left+13,14))
+        image.paste(sprite,(x,y),sprite.getchannel('A'))

@@ -17,10 +17,11 @@ info={'version':(root/'VERSION').read_text().strip(),
       'compiler':command([compiler,'--version']).splitlines()[0],
       'flags':flags,'target':'cx16','linker':'kakuro.cfg'}
 inputs=hashlib.sha256()
-paths=[p for p in (root/'src').iterdir() if (p.suffix in ('.c','.h','.s','.lib','.cfg') and p.name!='sfx.h') or p.name in ('Makefile','ABOUT.TXT','HELP.TXT')]
+paths=[p for p in (root/'src').iterdir() if (p.suffix in ('.c','.h','.s','.lib','.cfg') and p.name not in ('sfx.h','tile_layout.h')) or p.name in ('Makefile','ABOUT.TXT','HELP.TXT')]
 paths+=list((root/'assets/scripts').glob('*.py'))
 paths+=list((root/'assets/sound').glob('*.ZSM'))+list((root/'assets/sound').glob('*.BIN'))
 paths+=[root/'assets/sound/sfx.h']+list((root/'assets/puzzles').glob('*.puz'))+list((root/'assets/tiles').glob('*.png'))
+paths+=[root/'assets/tiles/layout.json']+list((root/'assets/backgrounds').glob('*.png'))
 for path in sorted(paths):
     inputs.update(str(path.relative_to(root)).encode());inputs.update(path.read_bytes())
 info['inputs']=inputs.hexdigest()

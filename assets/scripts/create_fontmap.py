@@ -18,67 +18,22 @@
 #                                                                       #
 #########################################################################
 
-import numpy as np
-import PIL.Image
-import os
+from pathlib import Path
 import sys
-
-ROOT = os.path.dirname(__file__)
+import numpy as np
+from PIL import Image
 
 def main():
-    create_fontmap_16('font-tiles-16.png', 'FONT16.DAT', 10)
-    create_fontmap_8('font-tiles-8.png', 'FONT8.DAT', 6)
+    output=Path(sys.argv[1]) if len(sys.argv)>1 else Path('.')
+    source=Path(__file__).resolve().parents[1]/'tiles/ui-charmap.png'
+    with Image.open(source) as image:
+        if image.size!=(128,48):raise ValueError('UI charmap must be 16x6 cells of 8x8 pixels (ASCII 32-127)')
+        mask=np.asarray(image.convert('RGBA').getchannel('A'))>150
+    data=bytearray()
+    for row in range(6):
+        for col in range(16):
+            data.extend(np.packbits(mask[row*8:row*8+8,col*8:col*8+8],axis=1).tobytes())
+    output.mkdir(parents=True,exist_ok=True)
+    (output/'FONT8.DAT').write_bytes(data)
 
-def create_fontmap_16(infile, outfile, rows):
-    """
-    Open .png file storing an 16 x 16 bitmap font, extract the relevant characters
-    and store this at a 1bpp fontmap file.
-    """
-    img = PIL.Image.open(os.path.join(ROOT, '..', 'tiles', infile))
-    
-    data = bytearray()
-    for i in range(rows):                                 # loop over rows
-        for j in range(16):                               # loop over columns
-            for y in range(16):
-                # first 8 columns
-                b = np.uint8(0x00)
-                for k,x in enumerate(range(0,8)):
-                    px = img.getpixel((j*16+x, i*16+y))
-                    if px[3] > 150:
-                        b |= (1 << (7-k))
-                data.append(b)
-
-                # last 8 columns
-                b = np.uint8(0x00)
-                for k,x in enumerate(range(8,16)):
-                    px = img.getpixel((j*16+x, i*16+y))
-                    if px[3] > 150:
-                        b |= (1 << (7-k))                
-                data.append(b)
-
-    with open(outfile, 'wb') as f:
-        f.write(data)
-
-def create_fontmap_8(infile, outfile, rows):
-    """
-    Open .png file storing an 8 x 8 bitmap font, extract the relevant characters
-    and store this at a 1bpp fontmap file.
-    """
-    img = PIL.Image.open(os.path.join(ROOT, '..', 'tiles', infile))
-    
-    data = bytearray()
-    for i in range(rows):                                 # loop over rows
-        for j in range(16):                               # loop over columns
-            for y in range(8):
-                b = np.uint8(0x00)
-                for k,x in enumerate(range(0,8)):
-                    px = img.getpixel((j*8+x, i*8+y))
-                    if px[3] > 150:
-                        b |= (1 << (7-k))
-                data.append(b)
-
-    with open(outfile, 'wb') as f:
-        f.write(data)
-
-if __name__ == '__main__':
-    main()
+if __name__=='__main__':main()

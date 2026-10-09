@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#443333">
+<meta name="description" content="Play CX16 Kakuro in your browser: 96 number puzzles, a Commander X16 emulator, game instructions and downloads.">
+<title>CX16 Kakuro</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+<script defer src="app.js"></script>
+</head>
+<body>
+<header class="topbar"><a class="wordmark" href="./" aria-label="Kakuro home"><span aria-hidden="true">✿</span> CX16 KAKURO</a><a href="https://github.com/ifilot/cx16-kakuro">View source <span aria-hidden="true">↗</span></a></header>
+<main>
+<section class="intro"><p class="eyebrow">KAKURO FOR THE COMMANDER X16</p><h1>Kakuro.</h1><p class="lead">A number puzzle that combines crossword-style clues with arithmetic.<br>Play 96 puzzles, from 6×6 to 10×10, on a Commander X16 emulator in your browser.</p></section>
+<section class="play-section" aria-label="Play Kakuro">
+<div class="game-heading"><div><span class="live-dot" aria-hidden="true"></span><span id="status" role="status" aria-live="polite">Ready to start</span></div><span class="spec">640 × 480 · FOUR COLORS</span></div>
+<div class="player" id="player">
+<div class="game-viewport" id="game-viewport" tabindex="0" aria-label="Game viewport; swipe to pan on small screens">
+<div class="screen" id="screen">
+<canvas id="canvas" width="640" height="480" tabindex="0" aria-label="Kakuro game. Press Enter to open the puzzle journal; select a puzzle with the mouse." hidden></canvas>
+<div class="cover" id="cover"><img src="courtyard.png" width="640" height="480" alt="A Japanese courtyard shaded by sakura trees"><div class="cover-action"><button id="play" class="primary" type="button">Start game <span aria-hidden="true">→</span></button><p>Keyboard &amp; mouse, or touch controls below</p></div></div>
+</div>
+</div>
+<p class="mobile-hint">Swipe to pan the full-size screen; tap to select. Landscape or fullscreen gives you more room. <button type="button" id="exit-fullscreen">Exit fullscreen</button></p>
+<div class="touch-keys" id="touch-keys" aria-label="Game keyboard">
+<button type="button" data-key="1" disabled>1</button><button type="button" data-key="2" disabled>2</button><button type="button" data-key="3" disabled>3</button><button type="button" data-key="4" disabled>4</button><button type="button" data-key="5" disabled>5</button><button type="button" data-key="6" disabled>6</button><button type="button" data-key="7" disabled>7</button><button type="button" data-key="8" disabled>8</button><button type="button" data-key="9" disabled>9</button><button type="button" data-key="Delete" disabled>Del</button><button type="button" data-key="Enter" disabled>Enter</button><button type="button" data-key="Escape" disabled>Esc</button>
+</div>
+</div>
+<div class="toolbar"><p>Click or tap the game to focus. <kbd>Enter</kbd> opens the journal.</p><div class="tools"><button id="audio" type="button" aria-pressed="false" disabled>Sound off</button><button id="fullscreen" type="button" disabled>Fullscreen ↗</button><button id="restart" type="button" disabled>Restart</button></div></div>
+<noscript><p>Please enable JavaScript to play, or download the game below.</p></noscript>
+<p id="error" class="error" role="alert" hidden></p>
+</section>
+<section class="notes" aria-label="How to play"><div class="note-title"><p class="eyebrow">HOW KAKURO WORKS</p><h2>Rules &amp; controls</h2></div><div class="note"><span class="note-number">01</span><h3>Add to the clue</h3><p>Each clue gives the sum of the cells to its right or below. Fill the white cells with digits 1–9, without repeating a digit in a run.</p></div><div class="note"><span class="note-number">02</span><h3>Enter digits</h3><p>Choose a cell with your mouse or by tapping, then enter <kbd>1–9</kbd>. Use <kbd>Del</kbd> to erase. On touch screens, use the keypad below the game. Turn on Check when you want a little help.</p></div><div class="note"><span class="note-number">03</span><h3>Choose a puzzle</h3><p>Select a puzzle from the journal; blossoms indicate difficulty. Press <kbd>Esc</kbd> to return. Help explains the rules and controls in more detail.</p></div></section>
+<section class="download"><div><p class="eyebrow">DOWNLOAD &amp; TECHNICAL DETAILS</p><h2>CX16 Kakuro</h2><p>640×480 graphics, four colors, and 512 KiB RAM. The ZIP includes the program, puzzle data, graphics, music and sound effects for a Commander X16 or desktop emulator. Browser progress lasts for this session; restarting or reloading clears it.</p></div><a class="download-link" href="CX16-KAKURO.ZIP" download>Download ZIP ↓</a></section>
+</main>
+<footer><p>Made by <a href="https://github.com/ifilot">Ivo Filot</a> · <span id="version">CX16 Kakuro</span></p><p>Powered by the <a href="https://github.com/X16Community/x16-emulator/releases/tag/r49">Commander X16 emulator r49</a> · <a href="emulator-license.txt">Emulator license</a> · <a href="rom-license.txt">ROM notices</a></p></footer>
+</body>
+</html>

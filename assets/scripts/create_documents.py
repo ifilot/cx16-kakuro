@@ -12,9 +12,9 @@ from create_menu import ASSETS,COLORS,pack,glyphs,panel
 def main():
     output=Path(sys.argv[1]) if len(sys.argv)>1 else Path('.')
     paper,rose,brown,ink=COLORS
-    font=Image.open(ASSETS/'tiles/font-tiles-8.png').convert('RGBA')
+    font=Image.open(ASSETS/'tiles/ui-charmap.png').convert('RGBA')
     palette=Image.new('P',(1,1));palette.putpalette([v for c in COLORS for v in c]*64)
-    with Image.open(ASSETS/'menu/concepts/03-puzzle-journal-source.png') as source:
+    with Image.open(ASSETS/'backgrounds/journal.png') as source:
         indices=np.asarray(source.convert('RGB').resize((640,480),Image.Resampling.LANCZOS).quantize(palette=palette,dither=Image.Dither.FLOYDSTEINBERG))%4
     base=Image.fromarray(np.array(COLORS,dtype=np.uint8)[indices])
     for box in ((50,27,544,56),(50,99,544,320),(50,427,544,40)):panel(base,box,ink,ink)

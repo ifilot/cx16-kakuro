@@ -1,10 +1,10 @@
 """Build the four-color, 640x480 journal playfield and 4bpp hardware tiles."""
 from pathlib import Path
 import sys
+import json
 import numpy as np
 from PIL import Image, ImageDraw
 from create_menu import ASSETS, COLORS, pack, glyphs, panel
-from difficulty import blossom
 
 
 def tiles(image):
@@ -19,40 +19,15 @@ def tiles(image):
                     for y in range(0,image.height,16) for x in range(0,image.width,16))
 
 
-def cell(font,kind,value=0):
-    paper,rose,brown,ink = COLORS
-    face = brown if kind in ('blocked','clue','selected') else rose if kind == 'given' else paper
-    image = Image.new('RGB',(32,32),face)
-    d = ImageDraw.Draw(image)
-    d.rectangle((0,0,31,31),outline=ink if kind in ('blocked','clue') else brown)
-    if kind in ('blocked','clue'):
-        d.line((1,1,30,30),fill=paper)
-    else:
-        if kind == 'selected':
-            d.rectangle((1,1,30,30),outline=paper)
-        color = paper if kind in ('given','selected') else rose if kind == 'wrong' else brown
-        if value:
-            index=ord(str(value))-32
-            x,y=index%16*8,index//16*8
-            mask=font.crop((x,y,x+8,y+8)).getchannel('A').point(lambda a: 255 if a>150 else 0)
-            mask=mask.crop(mask.getbbox())
-            mask=mask.resize((mask.width*3,mask.height*3),Image.Resampling.NEAREST)
-            image.paste(color,((32-mask.width)//2,(32-mask.height)//2),mask)
-        if kind == 'correct': d.line((24,27,26,29,29,25),fill=rose)
-        elif kind == 'wrong':
-            d.line((25,25,29,29),fill=rose);d.line((29,25,25,29),fill=rose)
-    return image
-
-
 def main():
     output = Path(sys.argv[1]) if len(sys.argv)>1 else Path('.')
     output.mkdir(parents=True,exist_ok=True)
-    font = Image.open(ASSETS/'tiles/font-tiles-8.png').convert('RGBA')
-    small = Image.open(ASSETS/'tiles/small-digits.png').convert('RGBA')
+    font = Image.open(ASSETS/'tiles/ui-charmap.png').convert('RGBA')
+    small = Image.open(ASSETS/'tiles/clue-charmap.png').convert('RGBA')
     paper,rose,brown,ink = COLORS
     # Start from the same quantized artwork, before the menu's UI panels.
     palette=Image.new('P',(1,1));palette.putpalette([v for c in COLORS for v in c]*64)
-    with Image.open(ASSETS/'menu/concepts/03-puzzle-journal-source.png') as source:
+    with Image.open(ASSETS/'backgrounds/journal.png') as source:
         indices=np.asarray(source.convert('RGB').resize((640,480),Image.Resampling.LANCZOS).quantize(palette=palette,dither=Image.Dither.FLOYDSTEINBERG))%4
     background=Image.fromarray(np.array(COLORS,dtype=np.uint8)[indices])
     for box in ((50,27,560,48),(50,83,352,352)):
@@ -72,12 +47,20 @@ def main():
     packed=pack(background)
     (output/'GPLAY0.DAT').write_bytes(packed[:61440])
     (output/'GPLAY1.DAT').write_bytes(packed[61440:])
-    background.save(ASSETS/'menu/playfield-background.png')
     gfx=bytearray(128) # tile 0 is transparent
-    for kind,value in [('blocked',0),('clue',0),('plain',0)]+[('plain',n) for n in range(1,10)]+[('selected',0)]+[('selected',n) for n in range(1,10)]+[('given',n) for n in range(1,10)]+[('correct',n) for n in range(1,10)]+[('wrong',n) for n in range(1,10)]:
-        gfx.extend(tiles(cell(font,kind,value)))
-    assert len(gfx)==197*128
-    clue=cell(font,'clue')
+    layout=json.loads((ASSETS/'tiles/layout.json').read_text())
+    source=Image.open(ASSETS/'tiles/cells.png').convert('RGB')
+    columns,rows=layout['cells_grid']
+    assert layout['tile_size']==[16,16] and layout['cell_size']==[32,32]
+    assert len(layout['cells'])==49 and source.size==(columns*32,rows*32)
+    for kind in range(len(layout['cells'])):
+        x,y=kind%columns*32,kind//columns*32
+        gfx.extend(tiles(source.crop((x,y,x+32,y+32))))
+    cell_first=1
+    clue_first=len(gfx)//128
+    clue_kind=layout['cell_kinds']['clue']
+    x,y=clue_kind%columns*32,clue_kind//columns*32
+    clue=source.crop((x,y,x+32,y+32))
     for value in range(2,46):
         for direction in range(2):
             image=clue.crop((16,0,32,16) if direction==0 else (0,16,16,32))
@@ -90,24 +73,29 @@ def main():
             digits=digits.crop(digits.getbbox())
             image.paste(paper,((16-digits.width)//2,(16-digits.height)//2),digits)
             gfx.extend(tiles(image))
-    assert len(gfx)==285*128
+    font_first=len(gfx)//128
     for code in range(32,91):
         image=Image.new('RGB',(16,16),paper)
         glyphs(image,font,chr(code),0,0,brown,2)
         gfx.extend(tiles(image))
-    # Modal borders: top, side, top corner, bottom, bottom corner.
-    for kind in range(5):
-        image=Image.new('RGB',(16,16),paper);d=ImageDraw.Draw(image)
-        if kind in (0,2):d.line((0,0,15,0),fill=brown)
-        if kind in (1,2,4):d.line((0,0,0,15),fill=brown)
-        if kind in (3,4):d.line((0,15,15,15),fill=brown)
-        gfx.extend(tiles(image))
-    # Native hardware tiles for filled and outlined difficulty blossoms.
-    for filled in (True,False):
-        image=Image.new('RGB',(16,16),paper)
-        blossom(image,1,1,filled,COLORS)
-        gfx.extend(tiles(image))
+    border_first=len(gfx)//128
+    borders=Image.open(ASSETS/'tiles/dialog-borders.png').convert('RGB')
+    assert borders.size==(80,16)
+    gfx.extend(tiles(borders))
+    difficulty_first=len(gfx)//128
+    flowers=Image.open(ASSETS/'tiles/difficulty.png').convert('RGBA')
+    assert flowers.size==(48,16)
+    opaque=Image.new('RGBA',(32,16),(*paper,255))
+    opaque.alpha_composite(flowers.crop((0,0,32,16)))
+    gfx.extend(tiles(opaque))
     assert 0x13000+len(gfx)<=0x1e000
+    definitions={'GTILE_CELL_FIRST':cell_first,'GTILE_CLUE_FIRST':clue_first,
+        'GTILE_FONT_FIRST':font_first,'GTILE_BORDER_FIRST':border_first,
+        'GTILE_DIFFICULTY_FILLED':difficulty_first,'GTILE_DIFFICULTY_OUTLINE':difficulty_first+1}
+    definitions.update({'CELL_'+key.upper():value for key,value in layout['cell_kinds'].items()})
+    header='/* Generated from assets/tiles/layout.json and the live source sheets. */\n#ifndef TILE_LAYOUT_H\n#define TILE_LAYOUT_H\n'
+    header+=''.join(f'#define {key} {value}\n' for key,value in definitions.items())+'#endif\n'
+    (output/'tile_layout.h').write_text(header)
     # The exit modal is a cached bitmap, using the same font and paper panels.
     modal=Image.new('RGB',(384,96),brown)
     panel(modal,(3,3,381,93),ink,ink)
@@ -124,7 +112,6 @@ def main():
             buttons.extend(pack(button))
             if not state:modal.paste(button,(x,64))
     (output/'GQUIT.DAT').write_bytes(pack(modal)+buttons)
-    modal.save(ASSETS/'menu/quit-dialog.png')
     (output/'GTILES.DAT').write_bytes(gfx)
     # Controls are cached in RAM banks 7-8 and blitted to the bitmap.
     controls=bytearray()
