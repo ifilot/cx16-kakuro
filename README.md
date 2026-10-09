@@ -6,7 +6,13 @@
 
 [Download latest version](https://github.com/ifilot/cx16-KAKURO/releases/latest/download/CX16-KAKURO.ZIP)
 
-![Kakuro Gameplay](img/cx16-kakuro-gameplay.gif)
+**Puzzle selection**
+
+![Puzzle journal with puzzle cards and difficulty indicators](img/cx16-kakuro-journal-menu.png)
+
+**Gameplay**
+
+![Kakuro puzzle with sum clues, entered digits and game controls](img/cx16-kakuro-journal-game.png)
 
 ## Description
 
