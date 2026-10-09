@@ -92,10 +92,11 @@ if Path(sys.argv[1]).stem=='game':
     async function move(x,y) {
       const box=await page.locator('#canvas').boundingBox();
       await page.mouse.move(box.x+x/640*box.width,box.y+y/480*box.height);
+      await page.waitForFunction(()=>mouseAligned && !mouseAligning);
       await page.waitForTimeout(1200);
     }
     await move(128,136);
-    await page.mouse.down();await page.waitForTimeout(100);await page.mouse.up();
+    await page.mouse.down();await page.waitForTimeout(500);await page.mouse.up();
     await page.waitForTimeout(1600);
     await background('game',['GPLAY0.DAT','GPLAY1.DAT'],[64,434,352,28]);
     // The first puzzle's board starts at (128,160). Select a writable cell.
