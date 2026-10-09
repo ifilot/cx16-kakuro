@@ -214,6 +214,7 @@ void print_clock(const char* s, uint8_t y, uint8_t x);
  * @brief Load puzzles data into memory
  * 
  */
+extern uint16_t puzzle_filesize;
 void load_puzzles();
 
 /**

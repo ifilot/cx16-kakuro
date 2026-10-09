@@ -5,3 +5,7 @@
 *.sym
 *.map
 dump.bin
+
+SFX.BIN
+sfx.h
+BUILDINFO.json

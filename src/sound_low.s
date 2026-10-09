@@ -24,135 +24,74 @@
 .include "zsmkit.inc"
 .endscope
 
-.export _init_sound
-.export _start_bgmusic
-.export _stop_bgmusic
-.export _rewind_bgmusic
-.export _sound_fill_buffers_asm
-.export _play_thumb
+.export _init_sound, _start_bgmusic, _stop_bgmusic
+.export _sound_fill_buffers_asm, _play_sfx, _play_music
 
-TONE1 = 1189
-TONE2 = 800
-CHANNEL = 0
-
+; Bank 4 upper half is reserved for effects. Legacy color-swap scratch uses
+; only $A000-$AFFF; journal caches begin at bank 7.
+SFX_BANK = 4
+SFX_ADDRESS = $B000
+.bss
+saved_bank: .res 1
 .code
-;
-; Start the sound engine
-;
 .proc _init_sound: near
-   lda #1                          ; assign rambank 0
-   jsr zsmkit::zsm_init_engine     ; initialize engine
-   jsr zsmkit::zsmkit_setisr
-
-   ; load background music
-	ldx #0			   ; priority
-	lda #<filename1   ; filename low byte
-	ldy #>filename1   ; high byte
-	jsr zsmkit::zsm_setfile
-
-   ; load placement sound for tile
-   ldx #1			   ; priority
-	lda #<filename2   ; filename low byte
-	ldy #>filename2   ; high byte
-	jsr zsmkit::zsm_setfile
-
-   rts
+    lda #1
+    jsr zsmkit::zsm_init_engine
+    jsr zsmkit::zsmkit_setisr
+    ldx #0
+    lda #0
+    jsr zsmkit::zsm_setatten
+    ldx #1
+    lda #0
+    jsr zsmkit::zsm_setatten
+    rts
 .endproc
-
-;
-; Start background music
-;
 .proc _start_bgmusic: near
-	ldx #0
-	jsr zsmkit::zsm_play
-
-   ; set attenuation for background music
-	ldx #0			   ; priority
-	lda #$20		      ; attenuation value
-	jsr zsmkit::zsm_setatten
-
-	rts
+    ldx #0
+    jmp zsmkit::zsm_play
 .endproc
-
-;
-; Stop background music
-;
 .proc _stop_bgmusic: near
-	ldx #0
-	jsr zsmkit::zsm_stop
-	rts
+    ldx #0
+    jmp zsmkit::zsm_stop
 .endproc
-
-;
-; Rewind background music
-;
-.proc _rewind_bgmusic: near
-	ldx #0
-	jsr zsmkit::zsm_rewind
-	rts
-.endproc
-
-;
-; Fill sound buffers
-;
 .proc _sound_fill_buffers_asm: near
-	jsr zsmkit::zsm_fill_buffers
-   rts
+    jmp zsmkit::zsm_fill_buffers
 .endproc
-
-;
-; Play short sound when placing down a stone
-;
-; Operates on fixed channel set by CHANNEL variable
-;
-.proc _play_thumb: near
-   ldx #1
-   jsr zsmkit::zsm_rewind
-   clc               ; clear carry flag
-   jsr zsmkit::zsm_setloop
-	jsr zsmkit::zsm_play
-	rts
-
-;
-; Play single note
-;
-; X - low byte of the note
-; Y - high byte of the note
-;
-; Operates on fixed channel set by CHANNEL variable
-;
-play_note:
-   lda #<(Vera::VRAM_psg + CHANNEL * 4)
-   sta Vera::Reg::AddrL
-   lda #>(Vera::VRAM_psg + CHANNEL * 4)
-   sta Vera::Reg::AddrM
-   lda #%00010001
-   sta Vera::Reg::AddrH
-
-   stx Vera::Reg::Data0
-   sty Vera::Reg::Data0
-   lda #$FF
-   sta Vera::Reg::Data0
-   lda #((2 << 6) | %011111)
-   sta Vera::Reg::Data0
-   rts
-
-;
-; Turn off sound engine
-;
-; Operates on fixed channel set by CHANNEL variable
-;
-sound_off:
-   lda #<(Vera::VRAM_psg + CHANNEL * 4 + 2)
-   sta Vera::Reg::AddrL
-   lda #>(Vera::VRAM_psg + CHANNEL * 4)
-   sta Vera::Reg::AddrM
-   lda #%00010001
-   sta Vera::Reg::AddrH
-   lda 0
-   sta Vera::Reg::Data0
-   rts
+; A/X = filename. Replacing priority 0 closes its previous file.
+.proc _play_music: near
+    pha
+    txa
+    tay
+    pla
+    ldx #0
+    jsr zsmkit::zsm_setfile
+    ldx #0
+    sec
+    jsr zsmkit::zsm_setloop
+    ldx #0
+    jmp zsmkit::zsm_play
 .endproc
-
-filename1: .asciiz "kakuro.zsm"
-filename2: .asciiz "tile.zsm"
+; A/X = generated effect offset. Priority 1 is a non-looping memory stream.
+.proc _play_sfx: near
+    clc
+    adc #<SFX_ADDRESS
+    pha
+    txa
+    adc #>SFX_ADDRESS
+    tay
+    lda $00
+    sta saved_bank
+    lda #SFX_BANK
+    sta $00
+    pla
+    ldx #1
+    jsr zsmkit::zsm_setmem
+    ldx #1
+    clc
+    jsr zsmkit::zsm_setloop
+    ldx #1
+    jsr zsmkit::zsm_play
+    lda saved_bank
+    sta $00
+    rts
+.endproc

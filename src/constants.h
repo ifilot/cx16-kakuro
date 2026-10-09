@@ -127,7 +127,7 @@
 #define YES                 0x01
 
 #define MENU_HIGHLIGHT      0x9A
-#define MAX_PAGES           2
+#define MAX_PAGES           4
 
 // menu label positions
 #define ML_EXPL             4

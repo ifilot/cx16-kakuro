@@ -21,40 +21,11 @@
 #ifndef _SOUND_LOW_H
 #define _SOUND_LOW_H
 
-/**
- * @brief Initialize sound engine
- * 
- */
-void __fastcall__ init_sound();
-
-/**
- * @brief Start background music
- * 
- */
-void __fastcall__ start_bgmusic();
-
-/**
- * @brief Stop background music
- * 
- */
-void __fastcall__ stop_bgmusic();
-
-/**
- * @brief Rewind background music
- * 
- */
-void __fastcall__ rewind_bgmusic();
-
-/**
- * @brief Fill sound buffers
- * 
- */
-void __fastcall__ sound_fill_buffers_asm();
-
-/**
- * @brief Play short sound when placing down a stone
- * 
- */
-void __fastcall__ play_thumb();
-
-#endif // _SOUND_LOW_H
+#include <stdint.h>
+void __fastcall__ init_sound(void);
+void __fastcall__ start_bgmusic(void);
+void __fastcall__ stop_bgmusic(void);
+void __fastcall__ sound_fill_buffers_asm(void);
+void __fastcall__ play_music(const char* filename);
+void __fastcall__ play_sfx(uint16_t offset);
+#endif
