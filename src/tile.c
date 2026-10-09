@@ -23,38 +23,6 @@
 static const uint8_t rambank_tile = RAMBANK_TILE;
 
 /**
- * @brief Load small digits into memory
- * 
- */
-void load_small_digits() {
-    uint32_t map_base_addr;
-    uint8_t *ptr = (uint8_t*)(TILE_SRC);
-    uint16_t i = 0;
-
-    // set ram bank
-    asm("lda %v", rambank_tile);
-    asm("sta 0");
-
-    // load small digits into memory
-    cbm_k_setnam("sdigits.dat");
-    cbm_k_setlfs(0, 8, 2);
-    cbm_k_load(0, SMALL_DIGIT_BUFFER);
-
-    map_base_addr = TILEBASE_GAME + ((TILE_CLUE2 + (pco << 3)) << 8);
-    VERA.address = map_base_addr;
-    VERA.address_hi = map_base_addr >> 16;
-    VERA.address_hi |= 0b10000;
-
-    for(i=0; i<256; i++) {
-        (*ptr++) = VERA.data0;
-    }
-
-    // swap back to default ram bank
-    asm("lda 0");
-    asm("sta 0");
-}
-
-/**
  * @brief Build a new tile and upload it to VRAM
  * 
  */

@@ -13,7 +13,7 @@ run: all
 dist: all
 	mkdir -p build
 	rm -f build/CX16-KAKURO.ZIP
-	zip -q --junk-paths build/CX16-KAKURO.ZIP src/KAKURO.PRG src/*.DAT src/*.ZSM src/SFX.BIN src/*.TXT
+	zip -q --junk-paths build/CX16-KAKURO.ZIP src/KAKURO.PRG src/ASSETS.DAT src/PUZZLE.DAT src/MENU.ZSM src/GAME.ZSM src/SFX.BIN
 	unzip -tq build/CX16-KAKURO.ZIP
 	@echo "Distribution: build/CX16-KAKURO.ZIP"
 

@@ -1,3 +1,4 @@
+#include "resource.h"
 /* Journal playfield: 2bpp scenery underneath a 4bpp tile overlay.
  * Board changes touch four tile-map entries; no bitmap redraw is needed. */
 #include "playfield.h"
@@ -62,12 +63,12 @@ void playfield_enter(void) {
     char shape[]="0X0";
     uint8_t id=current_puzzle_id+1;
     transition_prepare();
-    load_tiles("gplay0.dat",0);
+    load_tiles(RES_GPLAY0,0);
     sound_fill_buffers();
-    load_tiles("gplay1.dat",0xF000);
-    if(!tiles_loaded) {load_tiles("gtiles.dat",GRAPHICS);tiles_loaded=1;}
+    load_tiles(RES_GPLAY1,0xF000);
+    if(!tiles_loaded) {load_tiles(RES_GTILES,GRAPHICS);tiles_loaded=1;}
     *(volatile uint8_t*)0=7;
-    cbm_k_setnam("gcontrols.dat");cbm_k_setlfs(0,8,2);cbm_k_load(0,BANKED_RAM);
+    resource_load(RES_GCONTROLS,BANKED_RAM,0);
     *(volatile uint8_t*)0=bank;
     VERA.control=0;VERA.address=0xE200;VERA.address_hi=0x11;
     transfer_count=4096;transfer_clear();

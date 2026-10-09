@@ -3,6 +3,8 @@
 Measurements include input delivery, rendering, audio and the paper fade at
 8 MHz. Temporary runtime copies protect saved puzzle status.
 """
+from runtime_assets import copy_runtime
+
 import re,sys,shutil,tempfile
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT.parent/'x16-emulator/api/python'))
@@ -10,8 +12,7 @@ from x16agent import X16Agent
 sym={n:int(a,16) for a,n in re.findall(r'al ([\da-fA-F]+) \.(\S+)',(ROOT/'src/KAKURO.sym').read_text())}
 with tempfile.TemporaryDirectory() as temp:
  p=Path(temp)
- for pattern in ('*.DAT','*.ZSM','*.BIN','KAKURO.PRG'):
-  for f in (ROOT/'src').glob(pattern):shutil.copy2(f,p/f.name)
+ copy_runtime(ROOT/'src', p)
  with X16Agent(ROOT.parent/'x16-emulator/build/x16emu',ROOT.parent/'emulator/rom.bin',fsroot=p,options=['-prg',str(p/'KAKURO.PRG'),'-run']) as e:
   def transition(label,event,entry):
    e.request('breakpoint',address=sym[entry]);e.request('breakpoint',address=0xFFD5);start=e.request('status')['cycles'];event();loads=0

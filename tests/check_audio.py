@@ -3,6 +3,8 @@
 Each effect runs over music and must stop its own voices. Runtime copies keep
 puzzle progress untouched. Only the emulator Python API is required.
 """
+from runtime_assets import copy_runtime
+
 import re
 import shutil
 import sys
@@ -44,8 +46,7 @@ def distinct(items):
 
 with tempfile.TemporaryDirectory(prefix='kakuro-audio-') as temp:
     runtime=Path(temp)
-    for pattern in ('*.DAT','*.ZSM','*.BIN','KAKURO.PRG'):
-        for source in (ROOT/'src').glob(pattern):shutil.copy2(source,runtime/source.name)
+    copy_runtime(ROOT/'src', runtime)
     with (runtime/'emulator.log').open('w') as log,X16Agent(
         ROOT.parent/'x16-emulator/build/x16emu',ROOT.parent/'emulator/rom.bin',fsroot=runtime,
         options=['-prg',str(runtime/'KAKURO.PRG'),'-run'],stderr=log) as emu:

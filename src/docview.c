@@ -1,3 +1,4 @@
+#include "resource.h"
 /* Four-color journal pages. Scrolling updates only the 8px text overlay. */
 #include "docview.h"
 #include "transition.h"
@@ -17,9 +18,9 @@ extern uint16_t docview_thumb_top,docview_thumb_end;
 static void address(uint32_t value) {
     VERA.control=0; VERA.address=value; VERA.address_hi=0x10|(value>>16);
 }
-static void load(const char* name,uint8_t bank) {
+static void load(uint8_t id,uint8_t bank) {
     *(volatile uint8_t*)0=bank;
-    cbm_k_setnam(name);cbm_k_setlfs(0,8,2);cbm_k_load(0,BANKED_RAM);
+    resource_load(id,BANKED_RAM,0);
 }
 static uint16_t maximum(void) {return docview_line_count>VISIBLE ? docview_line_count-VISIBLE : 0;}
 static void control(uint8_t id) {
@@ -77,12 +78,12 @@ static void scroll(int16_t amount) {
 void docview_init_screen(void) {
     uint8_t bank=*(volatile uint8_t*)0;
     transition_prepare();
-    load_tiles(gamestate==GAME_DOCVIEW_EXP ? "dhelp0.dat" : "dabout0.dat",0);
+    load_tiles(gamestate==GAME_DOCVIEW_EXP ? RES_DHELP0 : RES_DABOUT0,0);
     sound_fill_buffers();
-    load_tiles(gamestate==GAME_DOCVIEW_EXP ? "dhelp1.dat" : "dabout1.dat",0xF000);
+    load_tiles(gamestate==GAME_DOCVIEW_EXP ? RES_DHELP1 : RES_DABOUT1,0xF000);
     playfield_invalidate_tiles();
-    load_tiles("font8.dat",0x13000UL);
-    load("dcontrol.dat",7);*(volatile uint8_t*)0=bank;
+    load_tiles(RES_FONT8,0x13000UL);
+    load(RES_DCONTROL,7);*(volatile uint8_t*)0=bank;
     address(DOC_MAP);transfer_count=16384;transfer_clear();
     VERA.layer0.config=5;VERA.layer0.tilebase=1;
     VERA.layer0.hscroll=0;VERA.layer0.vscroll=0;
@@ -92,9 +93,9 @@ void docview_init_screen(void) {
     address(0x1FC00UL);VERA.data0=0;VERA.data0=0x8F;
     hover=-1;pressed=0;pressed_target=-1;
 }
-void docview_load_file(const char* filename) {
+void docview_load_text(uint8_t resource) {
     uint8_t bank=*(volatile uint8_t*)0;
-    load(filename[0]=='H' ? "dhelpt.dat" : "daboutt.dat",6);
+    load(resource,6);
     docview_line_count=*(uint16_t*)BANKED_RAM;docview_top_line=0;
     *(volatile uint8_t*)0=bank;
 }

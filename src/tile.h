@@ -35,7 +35,6 @@
  * @brief Load small digits into memory
  * 
  */
-void load_small_digits();
 
 /**
  * @brief Build a new tile and upload it to VRAM

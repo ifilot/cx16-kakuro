@@ -3,6 +3,8 @@
 Run after `make`: python3 tests/check_journal.py --screenshots /tmp/journal-check
 The emulator and ROM default to the neighboring CX16 workspace directories.
 """
+from runtime_assets import copy_runtime
+
 
 import argparse
 from pathlib import Path
@@ -35,9 +37,7 @@ def main():
         runtime = Path(temporary)
         captures = args.screenshots.resolve() if args.screenshots else runtime / 'screenshots'
         captures.mkdir(parents=True, exist_ok=True)
-        for pattern in ('*.DAT', '*.ZSM', '*.BIN', '*.TXT', 'KAKURO.PRG'):
-            for source in (ROOT / 'src').glob(pattern):
-                shutil.copy2(source, runtime / source.name)
+        copy_runtime(ROOT/'src', runtime)
         with (runtime / 'emulator.log').open('w') as log, X16Agent(
                 args.emulator.resolve(), args.rom.resolve(), fsroot=runtime,
                 options=['-prg', str(runtime / 'KAKURO.PRG'), '-run'], stderr=log) as emu:

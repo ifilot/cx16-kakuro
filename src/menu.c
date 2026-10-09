@@ -19,6 +19,7 @@
  **************************************************************************/
 
 #include "menu.h"
+#include "resource.h"
 #include "transition.h"
 
 #define HELP_BUTTON 24
@@ -134,41 +135,29 @@ static void draw_options(void) {
 void menu_prepare_cache(void) {
     uint8_t part;
     uint8_t reload_page = cached_page != menu_page;
-    char filename[] = "jpage10.dat";
-    char details_file[] = "jdetail10.dat";
+    uint8_t page_resource = RES_JPAGE10 + menu_page * 2;
+    uint8_t details_resource = RES_JDETAIL10 + menu_page * 6;
     uint8_t old_bank = *(volatile uint8_t*)0;
     VERA.control = 0;
     if(!active) {
         *(volatile uint8_t*)0 = 7;
-        cbm_k_setnam("jui.dat");
-        cbm_k_setlfs(0, 8, 2);
-        cbm_k_load(0, BANKED_RAM);
+        resource_load(RES_JUI,BANKED_RAM,0);
         *(volatile uint8_t*)0 = 14;
-        cbm_k_setnam("jdialog.dat");
-        cbm_k_setlfs(0, 8, 2);
-        cbm_k_load(0, BANKED_RAM);
+        resource_load(RES_JDIALOG,BANKED_RAM,0);
         *(volatile uint8_t*)0 = old_bank;
         active = 1;
     }
     if(reload_page) {
-        filename[5] = '1' + menu_page;
         *(volatile uint8_t*)0 = 16;
-        cbm_k_setnam(filename);
-        cbm_k_setlfs(0, 8, 2);
-        cbm_k_load(0, BANKED_RAM);
+        resource_load(page_resource++,BANKED_RAM,0);
         sound_fill_buffers();
-        filename[6] = '1';
+
         *(volatile uint8_t*)0 = 22;
-        cbm_k_setnam(filename);
-        cbm_k_setlfs(0, 8, 2);
-        cbm_k_load(0, BANKED_RAM);
-        details_file[7] = '1' + menu_page;
+        resource_load(page_resource++,BANKED_RAM,0);
+
         for(part = 0; part < 6; part++) {
-            details_file[8] = '0' + part;
             *(volatile uint8_t*)0 = 28 + part * 6;
-            cbm_k_setnam(details_file);
-            cbm_k_setlfs(0, 8, 2);
-            cbm_k_load(0, BANKED_RAM);
+            resource_load(details_resource+part,BANKED_RAM,0);
             sound_fill_buffers();
         }
         cached_page = menu_page;
@@ -183,14 +172,14 @@ void menu_init(void) {
     menu_prepare_cache();
     if(controls_dirty) {
         *(volatile uint8_t*)0=7;
-        cbm_k_setnam("jrestore.dat");cbm_k_setlfs(0,8,2);cbm_k_load(0,BANKED_RAM);
+        resource_load(RES_JRESTORE,BANKED_RAM,0);
         controls_dirty=0;
     }
     *(volatile uint8_t*)0 = old_bank;
     sound_fill_buffers();
-    load_tiles("journal0.dat", 0);
+    load_tiles(RES_JOURNAL0, 0);
     sound_fill_buffers();
-    load_tiles("journal1.dat", 0xF000);
+    load_tiles(RES_JOURNAL1, 0xF000);
     VERA.address = 0xFC00;
     VERA.address_hi = 0x11;
     VERA.data0 = 0;

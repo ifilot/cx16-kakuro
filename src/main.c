@@ -18,10 +18,12 @@
  *                                                                        *
  **************************************************************************/
 
+#include <conio.h>
 #include <cx16.h>
 #include <stdint.h>
 
 #include "video.h"
+#include "resource.h"
 #include "docview.h"
 #include "puzzle.h"
 
@@ -33,6 +35,11 @@
 #include "playfield.h"
 
 void main() {
+    if(!resource_init()) {
+        clrscr();
+        cputs("Cannot open ASSETS.DAT. Please use a complete v0.4.0 package.");
+        return;
+    }
     init_sound();
     sound_load_effects();
     show_start_screen();
@@ -57,10 +64,10 @@ void main() {
         if((gamestate & GAME_DOCVIEW_EXP) || (gamestate & GAME_DOCVIEW_ABOUT)) {
             docview_init_screen();
             if(gamestate == GAME_DOCVIEW_EXP) {
-                docview_load_file("HELP.TXT");
+                docview_load_text(RES_DHELPT);
             }
             if(gamestate == GAME_DOCVIEW_ABOUT) {
-                docview_load_file("ABOUT.TXT");
+                docview_load_text(RES_DABOUTT);
             }
             docview_show_file();
             while((gamestate & GAME_DOCVIEW_EXP) || (gamestate & GAME_DOCVIEW_ABOUT)) {

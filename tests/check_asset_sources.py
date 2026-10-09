@@ -17,7 +17,7 @@ def main():
         root=Path(directory)
         shutil.copytree(ROOT/'assets',root/'assets',ignore=shutil.ignore_patterns('__pycache__'))
         shutil.copytree(ROOT/'src',root/'src',ignore=shutil.ignore_patterns(
-            '*.DAT','*.PRG','*.ZSM','*.BIN','*.o','*.map','*.sym','sfx.h','tile_layout.h','BUILDINFO.json'))
+            '*.DAT','*.PRG','*.ZSM','*.BIN','*.o','*.map','*.sym','sfx.h','tile_layout.h','BUILDINFO.json','resource_index.h'))
         for name in ('Makefile','VERSION'):shutil.copy2(ROOT/name,root/name)
         env=dict(os.environ,GIT_DIR=str(ROOT/'.git'),GIT_WORK_TREE=str(root),PYTHONDONTWRITEBYTECODE='1')
         def build():
@@ -30,6 +30,13 @@ def main():
         assert not any((root/'src'/name).exists() for name in ('TILES.DAT','MTILES.DAT','SDIGITS.DAT','FONT16.DAT'))
         for name in ('GTILES.DAT','FONT8.DAT','JUI.DAT','GQUIT.DAT','SPLASH0.DAT','SPLASH1.DAT'):
             assert read(name)==(ROOT/'src'/name).read_bytes(),name
+        import sys
+        sys.path.insert(0,str(ROOT/'assets/scripts'))
+        from resource_bundle import read_bundle
+        resources=read_bundle(root/'src/ASSETS.DAT')
+        assert len(resources)==54
+        assert 'PUZZLE.DAT' not in resources and 'JPALET.DAT' not in resources
+        for name,data in resources.items():assert data==read(name),name
         atlas=read('GTILES.DAT');font=read('FONT8.DAT');menu=read('JUI.DAT')
         # Alter the first blocked-cell pixel. Only that cell's atlas tile may change.
         sheet=root/'assets/tiles/cells.png'
@@ -50,9 +57,17 @@ def main():
         output=build()
         for script in ('create_fontmap.py','create_menu.py','create_playfield.py','create_documents.py'):
             assert script in output,output
+        assert read_bundle(root/'src/ASSETS.DAT')['GTILES.DAT']==read('GTILES.DAT')
         assert read('FONT8.DAT')!=font
         assert read('JUI.DAT')!=menu
         assert read('GTILES.DAT')!=changed
+        result=subprocess.run(['make','dist'],cwd=root,env=env,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+        assert result.returncode==0,result.stdout
+        from zipfile import ZipFile
+        from runtime_assets import RUNTIME_FILES
+        with ZipFile(root/'build/CX16-KAKURO.ZIP') as package:
+            assert set(package.namelist())==set(RUNTIME_FILES)
+            assert package.testzip() is None
         print('PASS: fresh source-only build; cell and charmap edits propagate through make into game assets.')
 
 

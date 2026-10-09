@@ -1,4 +1,6 @@
 """Exercise journal gameplay, all five grid sizes, entry/check/erase and dialogs."""
+from runtime_assets import copy_runtime
+
 import argparse
 from pathlib import Path
 import re
@@ -20,8 +22,7 @@ def main():
         runtime=Path(directory)
         captures=args.screenshots.resolve() if args.screenshots else runtime/'screenshots'
         captures.mkdir(parents=True,exist_ok=True)
-        for pattern in ('*.DAT','*.ZSM', '*.BIN','*.TXT','KAKURO.PRG'):
-            for source in (ROOT/'src').glob(pattern):shutil.copy2(source,runtime/source.name)
+        copy_runtime(ROOT/'src', runtime)
         with (runtime/'emulator.log').open('w') as log,X16Agent(
             ROOT.parent/'x16-emulator/build/x16emu',ROOT.parent/'emulator/rom.bin',fsroot=runtime,
             options=['-prg',str(runtime/'KAKURO.PRG'),'-run'],stderr=log) as emu:

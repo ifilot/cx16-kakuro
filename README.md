@@ -60,6 +60,9 @@ Use `make run` to build and launch the emulator. The default paths are
 `make run EMU=/path/to/x16emu ROM=/path/to/rom.bin` if needed.
 
 Use `make dist` to bundle the program and its assets in `build/CX16-KAKURO.ZIP`.
+The package contains six files: `KAKURO.PRG`, `ASSETS.DAT`, `PUZZLE.DAT`,
+`MENU.ZSM`, `GAME.ZSM`, and `SFX.BIN`. Keep them together when running the game;
+`PUZZLE.DAT` stores puzzle progress.
 
 ## Dependencies
 
