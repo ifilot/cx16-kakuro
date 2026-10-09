@@ -43,16 +43,20 @@ const server = http.createServer((request,response) => {
     // Compare a static framebuffer region against the actual packed game assets.
     async function background(name,files,box) {
       const file=path.join(captures,`${name}.png`);
-      // WebGL discards its drawing buffer; capture the composited canvas at
-      // native resolution rather than using toDataURL (which returns black).
-      await page.locator('#canvas').evaluate(element=>{
-        element.style.width='640px';element.style.height='480px';
-        const rect=element.getBoundingClientRect();
-        element.style.transform=`translate(${Math.ceil(rect.x)-rect.x}px, ${Math.ceil(rect.y)-rect.y}px)`;
-      });
-      await page.locator('#canvas').screenshot({path:file});
-      await page.locator('#canvas').evaluate(element=>{element.style.width='';element.style.height='';element.style.transform='';});
-      const result=spawnSync('python3',['-c',`
+      const deadline=Date.now()+30000;
+      // WASM startup and scene loading depend on host speed. Wait for the
+      // actual expected pixels rather than assuming a fixed sleep is enough.
+      while (true) {
+        // WebGL discards its drawing buffer; capture the composited canvas at
+        // native resolution rather than using toDataURL (which returns black).
+        await page.locator('#canvas').evaluate(element=>{
+          element.style.width='640px';element.style.height='480px';
+          const rect=element.getBoundingClientRect();
+          element.style.transform=`translate(${Math.ceil(rect.x)-rect.x}px, ${Math.ceil(rect.y)-rect.y}px)`;
+        });
+        await page.locator('#canvas').screenshot({path:file});
+        await page.locator('#canvas').evaluate(element=>{element.style.width='';element.style.height='';element.style.transform='';});
+        const result=spawnSync('python3',['-c',`
 import sys,numpy as np
 from PIL import Image
 from pathlib import Path
@@ -72,8 +76,14 @@ if Path(sys.argv[1]).stem=='game':
         glyphs.append(colors[np.stack([raw>>4,raw&15],axis=1).reshape(16,16)])
     assert np.array_equal(pixels[96:112,448:560],np.concatenate(glyphs,axis=1)),'Mouse selected the wrong puzzle'
 
-`,file,...files.map(f=>path.join(site,'game',f)),...box.map(String)],{encoding:'utf8'});
-      assert.equal(result.status,0,result.stderr);
+  `,file,...files.map(f=>path.join(site,'game',f)),...box.map(String)],{encoding:'utf8'});
+        if (result.status===0) return;
+        assert(!result.error,result.error?.message);
+        if (Date.now()>=deadline) {
+          assert.fail(`${name} did not reach the expected scene within 30 seconds. Last capture: ${file}\n${result.stderr}`);
+        }
+        await page.waitForTimeout(250);
+      }
     }
     await background('start',['SPLASH0.DAT','SPLASH1.DAT'],[32,32,80,80]);
     await page.locator('#canvas').press('Enter',{delay:100});
