@@ -32,7 +32,6 @@ jobs:
         with:
           name: CX16-KAKURO.ZIP
           path: build/CX16-KAKURO.ZIP
-          archive: false
           if-no-files-found: error
 
   release:
@@ -47,7 +46,10 @@ jobs:
         with:
           name: CX16-KAKURO.ZIP
           path: build
-          skip-decompress: true
+      - name: Verify package
+        run: |
+          test -f build/CX16-KAKURO.ZIP
+          unzip -tq build/CX16-KAKURO.ZIP
       - name: Publish package
         env:
           GH_TOKEN: ${{ github.token }}
