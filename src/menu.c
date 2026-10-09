@@ -19,287 +19,329 @@
  **************************************************************************/
 
 #include "menu.h"
+#include "transition.h"
 
-int8_t obtnx = 0; 
-int8_t obtny = 0;
+#define HELP_BUTTON 24
+#define OPTIONS_BUTTON 25
+#define ABOUT_BUTTON 26
+#define PREVIOUS_BUTTON 27
+#define NEXT_BUTTON 28
+#define MUSIC_BUTTON 29
+#define BACK_BUTTON 30
+#define PAGE_SIZE 24
+#define COLUMNS 6
+
 uint8_t menu_page = 0;
+static uint8_t selected = 0;
+static uint8_t active = 0;
+static uint8_t cached_page = 255;
+static uint8_t options_open = 0;
+static uint8_t controls_dirty=0;
+static uint8_t statuses[PAGE_SIZE];
+static int8_t hovered = -1;
+static int8_t pressed = -1;
+static uint8_t previous_buttons = 0;
 
-/**
- * @brief Build the puzzle selection  menu
- * 
- */
-void menu_init() {
-    uint8_t i,j,puzidx;
-    
-    // window background
-    for(i=2; i<=27; i++) {
-        set_tile(i, 1, 0x04, 0x00, LAYER0);
-        for(j=2; j<=37; j++) {
-            set_tile(i, j, 0x06, 0x00, LAYER0);
-        }
-        set_tile(i, 38, 0x04, MIRROR_X, LAYER0);
-    }
-
-    // window title
-    set_tile(1, 1, 0x0B, 0x00, LAYER0);
-    for(j=2; j<=37; j++) {
-        set_tile(1, j, 0x03, 0x00, LAYER0);
-        set_tile(28, j, 0x05, 0x00, LAYER0);
-    }
-    set_tile(1, 38, 0x02, MIRROR_X, LAYER0);
-
-    if((menu_page+1) < MAX_PAGES) {
-        menu_build_tile_forward(0);
-    } else {
-        menu_build_corner_forward();
-    }
-
-    if(menu_page > 0) {
-        menu_build_tile_backward(0);
-    } else {
-        menu_build_corner_backward();
-    }
-
-    puzidx = menu_page * 48 + 1;
-    for(i=0; i<6; i++) {
-        for(j=0; j<8; j++) {
-            menu_build_icon(i, j, puzidx++, 0);
-        }
-    }
-
-    // Kakuro name
-    set_tile(2, 34, 0x1A, 0x00, LAYER0);
-    set_tile(2, 35, 0x1B, 0x00, LAYER0);
-    set_tile(2, 36, 0x2A, 0x00, LAYER0);
-    set_tile(2, 37, 0x2B, 0x00, LAYER0);
-
-    // print text
-    printtext("Kakuro", 2, 2, 0x12);
-    printtext("Help  Options  About", 28, ML_EXPL, 0x14);
-    menu_print_page();
+/* The bitmap occupies $00000..$12BFF. Fonts/maps remain above that range;
+ * a private cursor at $1E000 survives overwriting the old menu tile set. */
+static void bitmap_address(uint16_t x, uint16_t y, uint8_t increment) {
+    uint16_t large = y << 7;
+    uint16_t address = large + (y << 5);
+    uint8_t high = address < large;
+    uint16_t column = x >> 2;
+    large = address + column;
+    if(large < address) high++;
+    VERA.address = large;
+    VERA.address_hi = high | increment;
 }
 
-/**
- * @brief Build a menu page turning tile for the forward direction
- * 
- */
-void menu_build_tile_forward(uint8_t col) {
-    set_tile(27, 37, 0x08 + col * 0x30, MIRROR_X, LAYER0);
-    set_tile(27, 38, 0x07 + col * 0x30, MIRROR_X, LAYER0);
-    set_tile(28, 37, 0x0A + col * 0x30, MIRROR_X, LAYER0);
-    set_tile(28, 38, 0x09 + col * 0x30, MIRROR_X, LAYER0);
+static uint16_t card_x(uint8_t column) {
+    return 100 + column * 72 + (column >= 3 ? 24 : 0);
 }
 
-/**
- * @brief Build a menu page turning tile for the backward direction
- * 
- */
-void menu_build_tile_backward(uint8_t col) {
-    set_tile(27, 1, 0x07 + col * 0x30, 0x00, LAYER0);
-    set_tile(27, 2, 0x08 + col * 0x30, 0x00, LAYER0);
-    set_tile(28, 1, 0x09 + col * 0x30, 0x00, LAYER0);
-    set_tile(28, 2, 0x0A + col * 0x30, 0x00, LAYER0);
+extern const uint8_t* menu_blit_source;
+extern uint8_t menu_blit_width, menu_blit_height;
+extern void menu_blit(void);
+
+static void cached_rectangle(uint8_t bank, uint16_t offset, uint16_t x,
+                             uint16_t y, uint8_t width, uint8_t height) {
+    uint8_t old_bank = *(volatile uint8_t*)0;
+    *(volatile uint8_t*)0 = bank;
+    menu_blit_source = (const uint8_t*)(BANKED_RAM + offset);
+    menu_blit_width = width;
+    menu_blit_height = height;
+    VERA.control = 0;
+    bitmap_address(x, y, 0x10);
+    menu_blit();
+    *(volatile uint8_t*)0 = old_bank;
 }
 
-/**
- * @brief Build a menu page turning tile for the forward direction
- * 
- */
-void menu_build_corner_forward() {
-    set_tile(27, 37, 0x06, MIRROR_X, LAYER0);
-    set_tile(27, 38, 0x04, MIRROR_X, LAYER0);
-    set_tile(28, 37, 0x05, MIRROR_X, LAYER0);
-    set_tile(28, 38, 0x0C, MIRROR_X, LAYER0);
+static void draw_card(uint8_t index) {
+    uint16_t x = card_x(index % COLUMNS);
+    uint16_t y = 112 + (index / COLUMNS) * 56;
+    uint8_t status = statuses[index];
+    uint8_t state = index == selected ? 1 : (status & STATUS_SOLVED ? 3 : (status & STATUS_OPENED ? 2 : 0));
+    cached_rectangle(16 + state * 3 + index / 8, (index & 7) * 1024,
+                     x - 4, y - 4, 16, 56);
+    if(index == selected && (status & (STATUS_SOLVED | STATUS_OPENED)))
+        cached_rectangle(10, status & STATUS_SOLVED ? 2048 : 0,
+                         x + 44, y + 2, 3, 12);
 }
 
-/**
- * @brief Build a menu page turning tile for the backward direction
- * 
- */
-void menu_build_corner_backward() {
-    set_tile(27, 1, 0x04, 0x00, LAYER0);
-    set_tile(27, 2, 0x06, 0x00, LAYER0);
-    set_tile(28, 1, 0x0C, 0x00, LAYER0);
-    set_tile(28, 2, 0x05, 0x00, LAYER0);
+static void draw_details(void) {
+    uint8_t status = statuses[selected];
+    uint8_t state = status & STATUS_SOLVED ? 2 : (status & STATUS_OPENED ? 1 : 0);
+    cached_rectangle(28 + state * 12 + selected / 2, (selected & 1) * 4096,
+                     96, 344, 112, 21);
 }
 
-/**
- * @brief Build a menu page turning tile for the backward direction
- * 
- */
-void menu_build_icon(uint8_t y, uint8_t x, uint8_t puzzle_id, uint8_t select) {
-    uint8_t i = 0;
-    uint8_t status = 0;
-    uint8_t col_id = 0;
-    uint8_t rows = 0;
-    uint8_t diff = 0;
-
-    status = retrieve_puzzle_status(puzzle_id);
-    if(select == 1) {
-        col_id = 1;
-    } else {
-        if(status & STATUS_SOLVED) {
-            col_id = 2;
-        } else if(status & STATUS_OPENED) {
-            col_id = 3;
-        }
-    }
-
-    rows = (status >> 2) & 0x07;
-    diff = (status >> 6) & 0x03;
-
-    // show puzzle icon
-    set_tile(4*y+4, 4*x+5, 0x48 + col_id, 0x00, LAYER0);
-    set_tile(4*y+4, 4*x+6, 0x40 + diff, 0x00, LAYER0);
-    set_tile(4*y+5, 4*x+5, 0x50 + rows, 0x00, LAYER0);
-    set_tile(4*y+5, 4*x+6, 0x58 + col_id, 0x00, LAYER0);
-
-    col_id = select & 1;
-
-    // set puzzle number
-    set_tile(4*y+6, 4*x+5, (puzzle_id / 10) + (col_id + 1) * 0x10, 0x00, LAYER0);
-    set_tile(4*y+6, 4*x+6, (puzzle_id % 10) + (col_id + 1) * 0x10, 0x00, LAYER0);
+static void cached_button(uint8_t id, uint16_t x, uint16_t y,
+                          uint8_t width, uint8_t highlight) {
+    uint8_t slot = id * 2 + highlight;
+    cached_rectangle(7 + slot / 4, (slot & 3) * 2048, x, y, width, 36);
 }
 
-/**
- * @brief Handle mouse operation
- * 
- */
-uint8_t menu_handle_mouse() {
-    static uint8_t mouse_buttons = 0x00;
-    uint16_t *mouse_x = (uint16_t *)0x2;
-    uint16_t *mouse_y = (uint16_t *)0x4;
-    uint8_t scrn_tile_x, scrn_tile_y;
-    uint8_t mod_tile_x, mod_tile_y;
-    uint8_t pos_x, pos_y;
-    uint8_t idx = 0;
+static void draw_pagination(void) {
+    uint8_t state = hovered == PREVIOUS_BUTTON ? 1 : (hovered == NEXT_BUTTON ? 2 : 0);
+    uint8_t slot = menu_page * 3 + state;
+    cached_rectangle(11 + slot / 4, (slot & 3) * 2048, 424, 416, 41, 36);
+}
 
-    // read mouse
-    asm("ldx #2");
-    asm("jsr $FF6B");
-    asm("sta %v", mouse_buttons);
-
-    // get game button position from mouse position
-    scrn_tile_x = (*mouse_x >> 4);  // divide by 16, screen tile position
-    scrn_tile_y = (*mouse_y >> 4);
-    mod_tile_x = scrn_tile_x % 4;   // get modulus for division by 4
-    mod_tile_y = scrn_tile_y % 4;
-
-    // puzzle tiles
-    if(mod_tile_y <= 2 && (mod_tile_x == 1 || mod_tile_x == 2)) {
-        pos_x = (scrn_tile_x - 5) >> 2;
-        pos_y = (scrn_tile_y - 4) >> 2;
-        if(pos_y > 5 || pos_x > 7) {
-            // do nothing
-        } else {
-            if(pos_y != obtny || pos_x != obtnx) {
-                menu_build_icon(obtny, obtnx, obtny * 8 + obtnx + 1 + menu_page * 48, 0); // release
-            }
-            menu_build_icon(pos_y, pos_x, pos_y * 8 + pos_x + 1 + menu_page * 48, 1);     // highlight
-            obtnx = pos_x;
-            obtny = pos_y;
-
-            if(mouse_buttons & 1) {
-                while(mouse_buttons != 0x00) {
-                    asm("ldx #2");
-                    asm("jsr $FF6B");
-                    asm("sta %v", mouse_buttons);
-                }
-
-                current_puzzle_id = obtny * 8 + obtnx + menu_page * 48;
-                gamestate = GAME_PLAY;
-                return 1;
-            }
-        }
-    } else {
-        menu_build_icon(obtny, obtnx, obtny * 8 + obtnx + 1 + menu_page * 48, 0); // release
+static void draw_footer_control(int8_t target) {
+    switch(target) {
+        case HELP_BUTTON: cached_button(0, 64, 416, 22, hovered == target); break;
+        case OPTIONS_BUTTON: cached_button(1, 160, 416, 34, hovered == target); break;
+        case ABOUT_BUTTON: cached_button(2, 304, 416, 26, hovered == target); break;
+        case PREVIOUS_BUTTON:
+        case NEXT_BUTTON: draw_pagination(); break;
     }
+}
 
-    // page turning tiles
-    if(scrn_tile_y >= 27 && scrn_tile_y <=28 && 
-       scrn_tile_x >= 1 && scrn_tile_x <= 2 &&
-       menu_page > 0) {
-        menu_build_tile_backward(1);
-        if(mouse_buttons & 1) {
-            while(mouse_buttons != 0x00) {
-                asm("ldx #2");
-                asm("jsr $FF6B");
-                asm("sta %v", mouse_buttons);
-            }
-            menu_page--;
-            menu_init();
-            return 0;
+static void draw_option_control(int8_t target) {
+    if(target == MUSIC_BUTTON)
+        cached_button(music ? 3 : 4, 228, 208, 46, hovered == target);
+    else if(target == BACK_BUTTON)
+        cached_button(5, 276, 248, 22, hovered == target);
+}
+
+static void draw_options(void) {
+    cached_rectangle(14, 0, 176, 160, 72, 112);
+    cached_rectangle(15, 0, 176, 272, 72, 32);
+    draw_option_control(MUSIC_BUTTON);
+    draw_option_control(BACK_BUTTON);
+}
+
+void menu_prepare_cache(void) {
+    uint8_t part;
+    uint8_t reload_page = cached_page != menu_page;
+    char filename[] = "jpage10.dat";
+    char details_file[] = "jdetail10.dat";
+    uint8_t old_bank = *(volatile uint8_t*)0;
+    VERA.control = 0;
+    if(!active) {
+        *(volatile uint8_t*)0 = 7;
+        cbm_k_setnam("jui.dat");
+        cbm_k_setlfs(0, 8, 2);
+        cbm_k_load(0, BANKED_RAM);
+        *(volatile uint8_t*)0 = 14;
+        cbm_k_setnam("jdialog.dat");
+        cbm_k_setlfs(0, 8, 2);
+        cbm_k_load(0, BANKED_RAM);
+        *(volatile uint8_t*)0 = old_bank;
+        active = 1;
+    }
+    if(reload_page) {
+        filename[5] = '1' + menu_page;
+        *(volatile uint8_t*)0 = 16;
+        cbm_k_setnam(filename);
+        cbm_k_setlfs(0, 8, 2);
+        cbm_k_load(0, BANKED_RAM);
+        sound_fill_buffers();
+        filename[6] = '1';
+        *(volatile uint8_t*)0 = 22;
+        cbm_k_setnam(filename);
+        cbm_k_setlfs(0, 8, 2);
+        cbm_k_load(0, BANKED_RAM);
+        details_file[7] = '1' + menu_page;
+        for(part = 0; part < 6; part++) {
+            details_file[8] = '0' + part;
+            *(volatile uint8_t*)0 = 28 + part * 6;
+            cbm_k_setnam(details_file);
+            cbm_k_setlfs(0, 8, 2);
+            cbm_k_load(0, BANKED_RAM);
+            sound_fill_buffers();
         }
-    } else {
-        if(menu_page > 0) {
-            menu_build_tile_backward(0);
-        } else {
-            menu_build_corner_backward();
+        cached_page = menu_page;
+    }
+    *(volatile uint8_t*)0=old_bank;
+}
+
+void menu_init(void) {
+    uint8_t i,id;
+    uint8_t old_bank=*(volatile uint8_t*)0;
+    transition_prepare();
+    menu_prepare_cache();
+    if(controls_dirty) {
+        *(volatile uint8_t*)0=7;
+        cbm_k_setnam("jrestore.dat");cbm_k_setlfs(0,8,2);cbm_k_load(0,BANKED_RAM);
+        controls_dirty=0;
+    }
+    *(volatile uint8_t*)0 = old_bank;
+    sound_fill_buffers();
+    load_tiles("journal0.dat", 0);
+    sound_fill_buffers();
+    load_tiles("journal1.dat", 0xF000);
+    VERA.address = 0xFC00;
+    VERA.address_hi = 0x11;
+    VERA.data0 = 0;
+    VERA.data0 = 0x8F; /* $1E000 >> 13, plus the 8bpp sprite flag */
+    VERA.layer0.config = 5;
+    VERA.layer0.tilebase = 1;
+    VERA.layer0.hscroll = 0;
+    VERA.layer0.vscroll = 0;
+    VERA.display.hscale = 128;
+    VERA.display.vscale = 128;
+    hovered = -1;
+    pressed = -1;
+    previous_buttons = 0;
+    options_open = 0;
+    gamestate = 0;
+    for(i = 0; i < PAGE_SIZE; i++) {
+        id = menu_page * PAGE_SIZE + i + 1;
+        statuses[i] = retrieve_puzzle_status(id);
+    }
+    for(i = 0; i < PAGE_SIZE; i++) {
+        draw_card(i);
+        sound_fill_buffers();
+    }
+    draw_details();
+    draw_pagination();
+    transition_end(0x50);
+}
+
+void menu_leave(void) {
+    transition_begin();
+    controls_dirty=1;
+}
+
+static int8_t hit(uint16_t x, uint16_t y) {
+    uint8_t col, row;
+    uint16_t left;
+    if(options_open) {
+        if(y >= 208 && y < 240 && x >= 228 && x < (music ? 392 : 408)) return MUSIC_BUTTON;
+        if(y >= 248 && y < 280 && x >= 276 && x < 360) return BACK_BUTTON;
+        return -1;
+    }
+    if(y >= 112 && y < 328 && (y - 112) % 56 < 48) {
+        if(x >= 100 && x < 300) {
+            col = (x - 100) / 72;
+        } else if(x >= 340 && x < 540) {
+            col = 3 + (x - 340) / 72;
+        } else return -1;
+        left = card_x(col);
+        if(x - left < 56) {
+            row = (y - 112) / 56;
+            return row * COLUMNS + col;
         }
     }
-
-    if(scrn_tile_y >= 27 && scrn_tile_y <=28 && 
-       scrn_tile_x >= 37 && scrn_tile_x <= 38 &&
-       (menu_page+1) < MAX_PAGES) {
-        menu_build_tile_forward(1);
-        if(mouse_buttons & 1) {
-            while(mouse_buttons != 0x00) {
-                asm("ldx #2");
-                asm("jsr $FF6B");
-                asm("sta %v", mouse_buttons);
-            }
-            menu_page++;
-            menu_init();
-            return 0;
-        }
-    } else {
-        if((menu_page+1) < MAX_PAGES) {
-            menu_build_tile_forward(0);
-        } else {
-            menu_build_corner_forward();
-        }
+    if(y >= 416 && y < 448) {
+        if(x >= 64 && x < 148) return HELP_BUTTON;
+        if(x >= 160 && x < 292) return OPTIONS_BUTTON;
+        if(x >= 304 && x < 404) return ABOUT_BUTTON;
+        if(x >= 424 && x < 456 && menu_page) return PREVIOUS_BUTTON;
+        if(x >= 552 && x < 584 && menu_page + 1 < MAX_PAGES) return NEXT_BUTTON;
     }
+    return -1;
+}
 
-    // menu labels
-    if(scrn_tile_y == 28) {
-        if(scrn_tile_x >= ML_EXPL && scrn_tile_x < (ML_EXPL+4)) {
-            printtext("Help", 28, ML_EXPL, MENU_HIGHLIGHT);
-            idx = GAME_DOCVIEW_EXP;
-        } else if(scrn_tile_x >= ML_OPTS && scrn_tile_x < (ML_OPTS+7)) {
-            printtext("Options", 28, ML_OPTS, MENU_HIGHLIGHT);
-            idx = GAME_OPTIONS;
-        } else if(scrn_tile_x >= ML_ABOUT && scrn_tile_x < (ML_ABOUT+5)) {
-            printtext("About", 28, ML_ABOUT, MENU_HIGHLIGHT);
-            idx = GAME_DOCVIEW_ABOUT;
-        } else {
-            printtext("Help  Options  About", 28, ML_EXPL, 0x14);
-            return 0;
-        }
+static void select_card(uint8_t index) {
+    uint8_t old = selected;
+    if(index == selected) return;
+    selected = index;
+    draw_card(old);
+    draw_card(selected);
+    draw_details();
+}
 
-        if(mouse_buttons & 1) {
-            while(mouse_buttons != 0x00) {
-                asm("ldx #2");
-                asm("jsr $FF6B");
-                asm("sta %v", mouse_buttons);
-            }
-
-            gamestate = idx;
-            return 1;
-        }
-
-    } else {
-        printtext("Help  Options  About", 28, ML_EXPL, 0x14);
+static uint8_t activate(int8_t target) {
+    if(target < 0) return 0;
+    if(target < PAGE_SIZE) {
+        play_sfx(SFX_SELECT);
+        current_puzzle_id = menu_page * PAGE_SIZE + target;
+        gamestate = GAME_PLAY;
+        return 1;
     }
-
+    switch(target) {
+        case HELP_BUTTON: play_sfx(SFX_SELECT); gamestate = GAME_DOCVIEW_EXP; return 1;
+        case ABOUT_BUTTON: play_sfx(SFX_SELECT); gamestate = GAME_DOCVIEW_ABOUT; return 1;
+        case OPTIONS_BUTTON:
+            play_sfx(SFX_SELECT);
+            options_open = 1;
+            hovered = -1;
+            draw_options();
+            break;
+        case PREVIOUS_BUTTON: play_sfx(SFX_PAGE); menu_page--; selected = 0; menu_init(); break;
+        case NEXT_BUTTON: play_sfx(SFX_PAGE); menu_page++; selected = 0; menu_init(); break;
+        case MUSIC_BUTTON:
+            play_sfx(SFX_SELECT);
+            if(music) { stop_bgmusic(); music = NO; }
+            else { music = YES; start_bgmusic(); }
+            draw_option_control(MUSIC_BUTTON);
+            break;
+        case BACK_BUTTON: play_sfx(SFX_BACK); menu_init(); break;
+    }
     return 0;
 }
 
-/**
- * @brief print page number
- * 
- */
-void menu_print_page() {
-    char buf[16];
-    sprintf(buf, "Pg:%X/%X", menu_page+1, MAX_PAGES);
-    printtext(buf, 28, ML_PAGE, 0x18);
+uint8_t menu_handle_mouse(void) {
+    static uint8_t buttons;
+    uint16_t* mouse_x = (uint16_t*)2;
+    uint16_t* mouse_y = (uint16_t*)4;
+    int8_t target;
+    int8_t old_hover;
+    int8_t clicked = -1;
+    uint8_t key;
+    uint8_t index;
+
+    asm("ldx #2");
+    asm("jsr $FF6B");
+    asm("sta %v", buttons);
+    target = hit(*mouse_x, *mouse_y);
+    if(target != hovered) {
+        old_hover = hovered;
+        hovered = target;
+        if(options_open) {
+            draw_option_control(old_hover);
+            draw_option_control(target);
+        }
+        else {
+            if(target >= 0 && target < PAGE_SIZE) select_card(target);
+            draw_footer_control(old_hover);
+            draw_footer_control(target);
+        }
+    }
+    if((buttons & 1) && !(previous_buttons & 1)) pressed = target;
+    if(!(buttons & 1) && (previous_buttons & 1)) {
+        if(pressed == target) clicked = target;
+        pressed = -1;
+    }
+    previous_buttons = buttons;
+    if(clicked >= 0) return activate(clicked);
+
+    index = selected;
+    key = cbm_k_getin();
+    if(options_open) {
+        if(key == KEYCODE_ESCAPE || key == KEYCODE_RETURN) {play_sfx(SFX_BACK);menu_init();}
+    } else {
+        switch(key) {
+            case KEYCODE_LEFT: if(index % COLUMNS != 0) index--; break;
+            case KEYCODE_RIGHT: if(index % COLUMNS != COLUMNS - 1) index++; break;
+            case KEYCODE_UP: if(index >= COLUMNS) index -= COLUMNS; break;
+            case KEYCODE_DOWN: if(index < PAGE_SIZE - COLUMNS) index += COLUMNS; break;
+            case KEYCODE_RETURN: return activate(selected);
+        }
+        if(index!=selected)play_sfx(SFX_CLICK);
+        select_card(index);
+    }
+    return 0;
 }

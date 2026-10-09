@@ -29,6 +29,7 @@
 #include <ascii_charmap.h>
 
 #include "constants.h"
+#include "puzzle.h"
 
 /**
  * @brief Load small digits into memory

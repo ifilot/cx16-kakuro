@@ -46,6 +46,15 @@ extern uint8_t current_puzzle_id;
 extern uint8_t gamestate;
 extern clock_t game_start_time;
 extern char game_timebuffer[10];
+extern uint8_t pco;    // puzzle color offset
+
+/**
+ * @brief Clears the screen
+ * 
+ * Set background tiles everywhere and sets foreground to transparent
+ * 
+ */
+void puzzle_clear_screen();
 
 /**
  * @brief Build puzzle
@@ -205,6 +214,7 @@ void print_clock(const char* s, uint8_t y, uint8_t x);
  * @brief Load puzzles data into memory
  * 
  */
+extern uint16_t puzzle_filesize;
 void load_puzzles();
 
 /**

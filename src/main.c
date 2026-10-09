@@ -29,41 +29,27 @@
 #include "mouse.h"
 #include "menu.h"
 #include "sound.h"
+#include "splash.h"
+#include "playfield.h"
 
 void main() {
-    // load assets into memory
-    init_screen();
-
-    // enable mouse
-    init_mouse();
-    set_mouse_pointer(0x30);
-
-    // load sound engine
     init_sound();
-    start_bgmusic();
+    sound_load_effects();
+    show_start_screen();
 
-    // load into VERA
-    load_tiles("mtiles.dat", TILEBASE_MENU);
-    load_tiles("tiles.dat",  TILEBASE_GAME);
-    load_tiles("font16.dat", TILEBASE_FONT16);
-    load_tiles("font8.dat",  TILEBASE_FONT8);
-
-    // load assets
-    load_small_digits();
-
-    // load puzzles into memory
-    load_puzzles();
-
+    // The journal RAM caches and puzzle data were prepared behind the title.
+    if(!puzzle_filesize)load_puzzles();
+    init_mouse();
     while(1) {
         /***********************************************************************
          * MENU
          **********************************************************************/
-        clear_screen();
-        set_tilebase_layer0(TILEBASE_MENU);
         menu_init();
+        sound_scene(MUSIC_MENU);
         while(menu_handle_mouse() == 0) {
             sound_fill_buffers();
         }
+        menu_leave();
 
         /***********************************************************************
          * DOCVIEWER
@@ -81,16 +67,15 @@ void main() {
                 docview_handle_key();
                 sound_fill_buffers();
             }
-            init_screen();
+            docview_leave();
         }
 
         /***********************************************************************
          * GAME
          **********************************************************************/
         if(gamestate & GAME_PLAY) {
-            clear_screen();
-            set_tilebase_layer0(TILEBASE_GAME);
             build_puzzle(current_puzzle_id);
+            sound_scene(MUSIC_GAME);
             while(!(gamestate & GAME_QUIT)) {
                 puzzle_handle_mouse();
                 puzzle_handle_keyboard();
@@ -102,6 +87,7 @@ void main() {
                 sound_fill_buffers();
             }
             save_puzzles();
+            playfield_leave();
         }
     }
 }

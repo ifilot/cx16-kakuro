@@ -30,52 +30,12 @@
 
 extern uint8_t menu_page;
 
-/**
- * @brief Build the puzzle selection  menu
- * 
- */
-void menu_init();
+/* Enter the journal, render its page, and read mouse/keyboard controls. */
+void menu_prepare_cache(void);
+void menu_init(void);
+uint8_t menu_handle_mouse(void);
 
-/**
- * @brief Build a menu page turning tile for the forward direction
- * 
- */
-void menu_build_tile_forward(uint8_t col);
+/* Cover the display with paper; retain the page caches for a later return. */
+void menu_leave(void);
 
-/**
- * @brief Build a menu page turning tile for the backward direction
- * 
- */
-void menu_build_tile_backward(uint8_t col);
-
-/**
- * @brief Build regular right-bottom page corner
- * 
- */
-void menu_build_corner_forward();
-
-/**
- * @brief Build regular left-bottom page corner
- * 
- */
-void menu_build_corner_backward();
-
-/**
- * @brief Build a menu page turning tile for the backward direction
- * 
- */
-void menu_build_icon(uint8_t y, uint8_t x, uint8_t puzzle_id, uint8_t select);
-
-/**
- * @brief Handle mouse operation
- * 
- */
-uint8_t menu_handle_mouse();
-
-/**
- * @brief print page number
- * 
- */
-void menu_print_page();
-
-#endif // _MENU_H
+#endif

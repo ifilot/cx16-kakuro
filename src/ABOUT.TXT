@@ -1,13 +1,42 @@
-|=====================|
-| ABOUT: CX-16 KAKURO |
-| VERSION: 0.2.0      |
-|=====================|
+# CX16 Kakuro
+Version: {version}
+Author: Ivo Filot
+Email: ivo@ivofilot.nl
+Website: https://www.ivofilot.nl
 
-Kakuro for the Commander X16 is developed by Ivo Filot. The source code for this
-game can be found on its Github page: https://github.com/ifilot/cx16-kakuro/.
+# Source code
+https://github.com/ifilot/cx16-kakuro
+Commit: {commit}
+Working tree: {tree}
 
-The source code is available under the  GNU General Public License version 3.
+# Build information
+Built: {built}
+Compiler: {compiler}
+Compiler flags: {flags}
+Target: Commander X16 / 65C02
+Linker configuration: {linker}
 
----------------------------------
-PRESS ESCAPE TO LEAVE THIS SCREEN
----------------------------------
+# Graphics and memory
+Display: 640x480 pixels at native scaling.
+Backgrounds: 2 bits per pixel, four palette colors.
+Board: 4-bit tiles, 16x16 pixels; four tiles per cell.
+Video RAM: 128 KiB VERA.
+Required system RAM: 512 KiB for the journal caches.
+
+# Game data
+96 puzzles, with boards from 6x6 to 10x10.
+Puzzle sources: assets/puzzles/*.puz
+Game data is compiled into PUZZLE.DAT.
+Opened and solved status is stored in that file.
+
+# Audio
+Playback library: ZSMKit.
+Music streams from MENU.ZSM and GAME.ZSM.
+18 effects are loaded from SFX.BIN.
+Music: priority 0, PSG voices 0-9.
+Effects: priority 1, PSG voices 12-15.
+
+# License
+GNU General Public License, version 3 or later.
+This program is provided without warranty.
+See LICENSE for the full terms.

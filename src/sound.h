@@ -25,6 +25,15 @@
 
 #include "constants.h"
 #include "sound_low.h"
+#include "sfx.h"
+
+#define MUSIC_MENU 0
+#define MUSIC_GAME 1
+#define RAMBANK_SFX 4
+#define SOUND_EFFECT_ADDRESS 0xB000
+#if SFX_BANK_SIZE > 4096
+#error Sound effects exceed the reserved half-bank
+#endif
 
 extern uint8_t music;               // whether to play music
 
@@ -32,6 +41,9 @@ extern uint8_t music;               // whether to play music
  * @brief Fill sound buffer
  * 
  */
-void sound_fill_buffers();
+void sound_fill_buffers(void);
+void sound_load_effects(void);
+void sound_scene(uint8_t scene);
+void sound_digit(uint8_t digit);
 
 #endif // _SOUND_H

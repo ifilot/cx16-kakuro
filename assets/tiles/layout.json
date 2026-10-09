@@ -1,0 +1,107 @@
+{
+  "tile_size": [
+    16,
+    16
+  ],
+  "cell_size": [
+    32,
+    32
+  ],
+  "cells_grid": [
+    7,
+    7
+  ],
+  "cells": [
+    "blocked",
+    "clue",
+    "empty",
+    "digit_1",
+    "digit_2",
+    "digit_3",
+    "digit_4",
+    "digit_5",
+    "digit_6",
+    "digit_7",
+    "digit_8",
+    "digit_9",
+    "selected_empty",
+    "selected_1",
+    "selected_2",
+    "selected_3",
+    "selected_4",
+    "selected_5",
+    "selected_6",
+    "selected_7",
+    "selected_8",
+    "selected_9",
+    "given_1",
+    "given_2",
+    "given_3",
+    "given_4",
+    "given_5",
+    "given_6",
+    "given_7",
+    "given_8",
+    "given_9",
+    "correct_1",
+    "correct_2",
+    "correct_3",
+    "correct_4",
+    "correct_5",
+    "correct_6",
+    "correct_7",
+    "correct_8",
+    "correct_9",
+    "incorrect_1",
+    "incorrect_2",
+    "incorrect_3",
+    "incorrect_4",
+    "incorrect_5",
+    "incorrect_6",
+    "incorrect_7",
+    "incorrect_8",
+    "incorrect_9"
+  ],
+  "cell_kinds": {
+    "blocked": 0,
+    "clue": 1,
+    "empty": 2,
+    "digits": 3,
+    "selected_empty": 12,
+    "selected_digits": 13,
+    "given_digits": 22,
+    "correct_digits": 31,
+    "incorrect_digits": 40
+  },
+  "ui_charmap": {
+    "first_character": 32,
+    "characters": 96,
+    "grid": [
+      16,
+      6
+    ],
+    "glyph_size": [
+      8,
+      8
+    ]
+  },
+  "clue_charmap": {
+    "digits": "0123456789",
+    "glyph_size": [
+      4,
+      8
+    ]
+  },
+  "dialog_borders": [
+    "top",
+    "side",
+    "top_corner",
+    "bottom",
+    "bottom_corner"
+  ],
+  "difficulty": [
+    "filled_16x16",
+    "outline_16x16",
+    "compact_5x5_at_32_0"
+  ]
+}

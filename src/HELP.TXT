@@ -1,51 +1,47 @@
-======
-KAKURO
-======
+# Welcome to Kakuro
+Kakuro combines a crossword-shaped grid with number sums. Fill each cream cell with a digit from 1 to 9. The dark clue cells tell you which totals to make.
 
-Introduction
-------------
-Kakuro is a logic-based number puzzle game, often described as a cross between a
-crossword and Sudoku. In this game, players fill a grid with digits from 1 to 9,
-with the objective of matching the sum of numbers in each row or column to a
-given target. However, no number can be repeated within a single sum. Each clue
-is represented as a small number in a black cell, dictating the sum of the
-digits to be placed in the adjacent white cells.
+# Reading the clues
+The clue above a column gives the sum of the cells below it. The clue to the left of a row gives the sum of the cells to its right. Follow each run until you reach another dark cell or the edge of the grid.
 
-Rules
------ 
-* Kakuro is played on a grid of blank and black cells, where the goal is to fill
-  in the blank cells with numbers. Some black cells have "clues" (a small number
-  in the corner) indicating the sum of the numbers that must appear in the 
-  consecutive blank cells in that row or column.
-* Only the numbers 1 through 9 can be used to fill the blank cells.
-* Within a "run" (a sequence of consecutive blank cells either in a row or a 
-  column), the numbers cannot repeat. Each number within a run must be unique.
-* The numbers in a run must add up to the sum indicated by the clue in the black
-  cell.
-* Each valid combination of numbers (in a run) must be used only once in the 
-  entire puzzle. This means that no two different runs with the same number of 
-  blank cells can have identical number combinations that sum to the same value.
+# The two rules
+- The digits in a run must add up to its clue.
+- A digit may appear only once within that run.
 
-Puzzles
--------
-* The game contains (currently) 96 puzzles of various sizes and difficulty 
-  levels. The size and difficulty are indicated by the number (6-10) in the
-  menu screen and the number of stars, respectively.
-* If a puzzle has been opened before, but not completed, it is colored in a
-  light green color. Completed puzzles are colored in a dark green shade. The
-  game will remember which puzzles have been completed before. You can always
-  choose to play a completed game again.
+For example, a two-cell run totaling 10 can contain 1 and 9, 2 and 8, 3 and 7, or 4 and 6. It cannot contain 5 and 5. Different runs may use the same combination.
 
-Gameplay
---------
-* Move your mouse cursor over the cell you want to fill and press a digit (1-9) on
-  your keyboard to enter a number. 
-* Once all the cells are correctly filled, the game will notify you 
-  automatically. 
-* If you'd like to validate your progress during the game, click the green/red 
-  button at the top-right corner of the screen. 
-* To exit the game, click the 'X' button or press the <ESCAPE> key.
+# Writing and erasing
+Move the mouse over a cream cell to select it. Press 1-9 to enter a digit. Type another digit to replace it. Backspace or 0 clears the selected cell.
 
----------------------------------
-PRESS ESCAPE TO LEAVE THIS SCREEN
----------------------------------
+Rose cells contain given numbers. They are part of the puzzle and cannot be changed. Dark cells contain clues or separate the runs; you cannot write in them.
+
+# Checking your entries
+Click CHECK to turn verification on or off. Verification compares your entries with the stored solution. Correct entries receive a small check; incorrect entries are shown in rose with a cross.
+
+You can continue editing while checking is on. Turn it off whenever you prefer to work without feedback.
+
+# Finishing a puzzle
+When every writing cell matches the solution, the game shows your elapsed time. Press Enter to return to the journal. The puzzle receives a solved mark.
+
+# Returning to the journal
+Press Escape. Choose Y to leave or N to continue. The timer continues while the confirmation is open.
+
+Completed puzzles can be played again. An opened mark records that you visited a puzzle; it does not save unfinished entries.
+
+# Choosing a puzzle
+The journal contains 96 puzzles across four pages, with 24 cards per page. Boards range from 6x6 to 10x10. Each card shows its number and size.
+
+Filled sakura blossoms show the difficulty rating. Outlined blossoms complete the five-slot display. More filled blossoms indicate a harder puzzle.
+
+Move the mouse over a card to see its details. Click to play, or use the arrow keys and Enter. The page arrows move through the journal.
+
+# Music and information
+Open OPTIONS in the journal to turn the music on or off. Sound effects remain enabled when music is off. HELP opens this guide. ABOUT contains project information and credits.
+
+# A useful first step
+Look for short runs and runs with only one empty cell. A two-cell clue of 3 must use 1 and 2; a two-cell clue of 17 must use 8 and 9. Use crossing runs to decide the order.
+
+# Reading these pages
+Up and Down scroll one line. Page Up and Page Down move one screen. Home returns to the beginning; End goes to the last screen. You can also click the Up and Down controls, use the mouse wheel, or click the scrollbar to move by a screen.
+
+Press Escape to return to puzzle selection.

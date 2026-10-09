@@ -6,7 +6,13 @@
 
 [Download latest version](https://github.com/ifilot/cx16-KAKURO/releases/latest/download/CX16-KAKURO.ZIP)
 
-![Kakuro Gameplay](img/cx16-kakuro-gameplay.gif)
+**Puzzle selection**
+
+![Puzzle journal with puzzle cards and difficulty indicators](img/cx16-kakuro-journal-menu.png)
+
+**Gameplay**
+
+![Kakuro puzzle with sum clues, entered digits and game controls](img/cx16-kakuro-journal-game.png)
 
 ## Description
 
@@ -14,8 +20,8 @@ Kakuro is a logic-based number puzzle game, often described as a cross between a
 crossword and Sudoku. In this game, players fill a grid with digits from 1 to 9,
 with the objective of matching the sum of numbers in each row or column to a
 given target. However, no number can be repeated within a single sum. Each clue
-is represented as a small number in a black cell, dictating the sum of the
-digits to be placed in the adjacent white cells.
+is represented as a small number in a dark cell, dictating the sum of the
+digits to be placed in the adjacent light cells.
 
 For the Commander X16, Kakuro offers a nostalgic experience, blending the
 puzzle's classic challenge with the retro charm of 8-bit computing. Players
@@ -27,27 +33,33 @@ workout and a tribute to vintage gaming.
 
 ## Features
 
-* In total, **48** puzzles are implemented in the game varying between 6x6 to
-  8x8 board sizes.
+* In total, **96** puzzles are implemented in the game varying between 6x6 to
+  10x10 board sizes.
 * The program keeps track of the user progression. Different colors are used to
   indicate opened and completed puzzles. The game automatically saves the result
-  to `PUZZLES.DAT` ensuring 'continuous play'. Note that the game state itself
+  to `PUZZLE.DAT` ensuring 'continuous play'. Note that the game state itself
   is not saved.
-* If the user is stuck, they can hit a toggle button which highlights all
-  correct numbers in green, while incorrect numbers are colored in red.
+* If the user is stuck, they can use the **Check** toggle. Correct entries
+  receive a small check; incorrect entries are shown in rose with a cross.
 
 ## Compilation
 
 First, install the required dependencies
 
 ```bash
-sudo apt-get install -y build-essential cc65 python3 python3-numpy python3-pilkit
+sudo apt-get install -y build-essential cc65 python3 python3-numpy python3-pil zip unzip
 ```
-Compilation is fairly straightforward. Go to the `src` folder and run `make`.
+Compilation is fairly straightforward. Run `make` from the repository root.
 
 ```bash
-cd src && make
+make
 ```
+
+Use `make run` to build and launch the emulator. The default paths are
+`../x16-emulator/build/x16emu` and `../emulator/rom.bin`; override them with
+`make run EMU=/path/to/x16emu ROM=/path/to/rom.bin` if needed.
+
+Use `make dist` to bundle the program and its assets in `build/CX16-KAKURO.ZIP`.
 
 ## Dependencies
 
@@ -58,13 +70,13 @@ this repository and automatically embedded in the `.PRG` file.
 
 ## Assets
 
-* All graphical artwork was created by me using [Pyxel
-  Edit](https://pyxeledit.com/). No permission is required to use this artwork
-  in your work, although attribution is always greatly appreciated.
-* Background music "Corridors of Time" by GTR3QQ is available under a
-  CC-BY-SA-4.0 license and obtained from [this source](https://github.com/mooinglemur/melodius/blob/main/ROOT/ZSM/Furnace/GTR3QQ/Corridors%20of%20Time.zsm)
-  GTR3QQ is graciously acknowledged for producing this piece of music and offering
-  it under a liberal license.
+* The original bitmap glyphs and cell artwork were created by me. No
+  permission is required to use this artwork in your work, although attribution
+  is always greatly appreciated.
+* The courtyard and journal backgrounds were generated with OpenAI's image
+  generator.
+* Music and sound effects were created with `cx16-sound-generator` for Kakuro.
+  **Niwa** plays in the menus and **Quiet Grid** during puzzles.
 
 ## Community guidelines
 

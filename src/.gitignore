@@ -5,3 +5,8 @@
 *.sym
 *.map
 dump.bin
+
+SFX.BIN
+sfx.h
+BUILDINFO.json
+tile_layout.h

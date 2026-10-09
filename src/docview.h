@@ -27,41 +27,9 @@
 #include "video.h"
 #include "sound.h"
 
-/**
- * @brief Initialize screen; set number of tiles and dimensions
- * 
- */
-void docview_init_screen();
-
-/**
- * @brief Clear layer0 and layer1 with background and empty tiles, respectively
- * 
- */
-void docview_clear_screen();
-
-/**
- * @brief Write string to screen
- * 
- * @param s pointer to null-terminated string
- */
-void docview_write_string(const char* s);
-
-/**
- * @brief Load file into memory
- * 
- * @param filename filename on SD card
- */
+void docview_init_screen(void);
 void docview_load_file(const char* filename);
-
-/**
- * @brief Print file contents onto screen
- */
-void docview_show_file();
-
-/**
- * @brief Handle key events
- * 
- */
-void docview_handle_key();
-
-#endif // _DOCVIEW_H
+void docview_show_file(void);
+void docview_handle_key(void);
+void docview_leave(void);
+#endif

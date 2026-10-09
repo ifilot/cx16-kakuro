@@ -68,6 +68,19 @@ void clear_screen();
 void fill_layer(uint8_t tile_id, uint8_t layer, uint8_t b2, uint8_t height, uint8_t width);
 
 /**
+ * @brief Fill line with tiles of the same type
+ *
+ * @param tile_id background tile index
+ * @param layer   which layer to fill
+ * @param b2      which tile info to use
+ * @param height  height of the map
+ * @param width   width of the map
+ * @param nrtiles number of tiles
+ */
+void fill_line(uint8_t tile_id, uint8_t layer, uint8_t b2, 
+               uint8_t y, uint8_t x, uint8_t width, uint8_t nrtiles);
+
+/**
  * @brief Set a tile on LAYER1
  * 
  * @param y             y-position of the tile

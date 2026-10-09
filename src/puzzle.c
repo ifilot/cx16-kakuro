@@ -19,6 +19,7 @@
  **************************************************************************/
 
 #include "puzzle.h"
+#include "playfield.h"
 
 uint8_t* puzzledata = NULL;
 uint8_t* userdata = NULL;
@@ -38,7 +39,19 @@ uint8_t gamestate = 0;
 clock_t game_start_time = 0;
 clock_t prevtotal;
 char game_timebuffer[10];
-uint16_t puzzle_filesize; // file size of the puzzle files
+uint16_t puzzle_filesize;       // file size of the puzzle files
+extern uint8_t pco = 2;         // puzzle color offset
+
+/**
+ * @brief Clears the screen
+ * 
+ * Set background tiles everywhere and sets foreground to transparent
+ * 
+ */
+void puzzle_clear_screen() {
+    fill_layer(TILE_BACKGROUND + (pco << 3), LAYER0, PALETTEBYTE, 64, 64);
+    fill_layer(0x20, LAYER1, 0x00, 64, 64);
+}
 
 /**
  * @brief Build puzzle
@@ -72,17 +85,15 @@ void build_puzzle(uint8_t puzzle_id) {
     puzzlerows = (*v >> 4) & 0x0F;
     puzzlecols = *v & 0x0F;
     puzzlecells = puzzlerows * puzzlecols;
+    free(puzzledata);
+    free(userdata);
     puzzledata = (uint8_t*)malloc(puzzlecells);
     userdata = (uint8_t*)calloc(puzzlecells, 1);
     v++;
 
-    offset_x = 20 - puzzlecols;
-    offset_y = 15 - puzzlerows;
-
-    if((puzzlerows * puzzlecols) % 2 == 1) {
-        offset_x++;
-        offset_y++;
-    }
+    offset_x = 14 - puzzlecols;
+    offset_y = 16 - puzzlerows;
+    ccurx = ccury = mp_ocurx = mp_ocury = -1;
 
     // parse raw data
     ctr = 0;
@@ -121,72 +132,25 @@ void build_puzzle(uint8_t puzzle_id) {
                 continue;
             }
 
-            // only check for right-hand non-zero cells
-            if(i >= puzzlerows-2 && j+2 < puzzlecols) {
-                if(puzzledata[idx + 1] > 0 && puzzledata[idx + 1] < 0x0A &&
-                   puzzledata[idx + 2] > 0 && puzzledata[idx + 2] < 0x0A) {
-                    puzzledata[idx] |= TLDT_HCLUE;
-                }
-                continue;
-            }
-
-            // only check for bottom cells
-            if(j >= puzzlecols-2) {
-                if(puzzledata[idx + puzzlecols] > 0 && puzzledata[idx + puzzlecols] < 0x0A &&
-                   puzzledata[idx + 2*puzzlecols] > 0 && puzzledata[idx + 2*puzzlecols] < 0x0A) {
-                    puzzledata[idx] |= TLDT_VCLUE;
-                }
-                continue;
-            }
-
-            // remaining cells
-            if(puzzledata[idx + 1] > 0 && puzzledata[idx + 1] < 0x0A &&
-               puzzledata[idx + 2] > 0 && puzzledata[idx + 2] < 0x0A) {
+            if(j+2<puzzlecols && (puzzledata[idx+1]&15) && (puzzledata[idx+2]&15))
                 puzzledata[idx] |= TLDT_HCLUE;
-            }
-
-            if(puzzledata[idx + puzzlecols] > 0 && puzzledata[idx + puzzlecols] < 0x0A &&
-               puzzledata[idx + 2*puzzlecols] > 0 && puzzledata[idx + 2*puzzlecols] < 0x0A) {
+            if(i+2<puzzlerows && (puzzledata[idx+puzzlecols]&15) &&
+               (puzzledata[idx+2*puzzlecols]&15))
                 puzzledata[idx] |= TLDT_VCLUE;
-            }
         }
     }
 
+    playfield_enter();
     for(i=0; i<puzzlerows; i++) {
         for(j=0; j<puzzlecols; j++) {
             idx = i * puzzlecols + j;
-            c = puzzledata[idx];
-
-            if(c == 0) {
-                set_tile(offset_y + i*2, offset_x + j*2, TILE_BLOCKED, 0x00, 0);
-                set_tile(offset_y + i*2+1, offset_x + j*2, TILE_BLOCKED, (1 << 3), 0);
-                set_tile(offset_y + i*2, offset_x + j*2+1, TILE_BLOCKED, (1 << 2), 0);
-                set_tile(offset_y + i*2+1, offset_x + j*2+1, TILE_BLOCKED, (1 << 2) | (1 << 3), 0);
-            } else if(c > 0 && c < 0x0A) { // numeric values
-                set_tile(offset_y + i*2, offset_x + j*2, TILE_EMPTY, 0x00, 0);
-                set_tile(offset_y + i*2+1, offset_x + j*2, TILE_EMPTY, (1 << 3), 0);
-                set_tile(offset_y + i*2, offset_x + j*2+1, TILE_EMPTY, (1 << 2), 0);
-                set_tile(offset_y + i*2+1, offset_x + j*2+1, TILE_EMPTY, (1 << 2) | (1 << 3), 0);
-            } else {
-                set_tile(offset_y + i*2, offset_x + j*2, TILE_CLUE1, 0x00, 0);
-                set_tile(offset_y + i*2+1, offset_x + j*2, TILE_CLUE2, 0x00, 0);
-                set_tile(offset_y + i*2, offset_x + j*2+1, TILE_CLUE2, (1 << 2) | (1 << 3), 0);
-                set_tile(offset_y + i*2+1, offset_x + j*2+1, TILE_CLUE1, (1 << 2) | (1 << 3), 0);
-            }
-
-            if((c & 0xF) == 0) {
-                puzzledata[idx] |= TLDT_LOCKED;
-            } else {
-                tiles_incorrect++;
-            }
+            if((puzzledata[idx] & 15) == 0)puzzledata[idx] |= TLDT_LOCKED;
+            else tiles_incorrect++;
+            playfield_cell(i,j);
         }
     }
     puzzle_generate_clues();
     puzzle_set_revealed_cells();
-
-    // build icons
-    set_tile(1, 38, 0x08, 0x00, LAYER0);
-    set_tile(2, 38, 0x09, 0x00, LAYER0);
 
     // set puzzle status
     idx = retrieve_puzzle_status(current_puzzle_id + 1);
@@ -194,9 +158,10 @@ void build_puzzle(uint8_t puzzle_id) {
     set_puzzle_status(current_puzzle_id+1, idx, 0, 0, 0);
 
     // keep track of time
-    print_clock_border(28, 31);
     game_start_time = clock();
     prevtotal = -1;
+    show_game_time();
+    playfield_ready();
 }
 
 /**
@@ -215,6 +180,7 @@ void show_solution() {
             idx = i * puzzlecols + j;
             if((puzzledata[idx] & TLDT_LOCKED) == 0) {
                 c = puzzledata[idx] & 0x0F;
+                userdata[idx]=c|TLDT_WRITTEN;
                 set_solution_tile(i, j, c, 0x12);
             }
         }
@@ -228,30 +194,15 @@ void show_solution() {
  * @param x         x-position in puzzle
  * @param tile      tile_id
  */
-void set_puzzle_tile(uint8_t y, uint8_t x, uint8_t tile) {
-    set_tile(offset_y + y*2, offset_x + x*2, tile, 0x00, 0);
-    set_tile(offset_y + y*2+1, offset_x + x*2, tile, (1 << 3), 0);
-    set_tile(offset_y + y*2, offset_x + x*2+1, tile, (1 << 2), 0);
-    set_tile(offset_y + y*2+1, offset_x + x*2+1, tile, (1 << 2) | (1 << 3), 0);
+void set_puzzle_tile(uint8_t y,uint8_t x,uint8_t tile) {
+    (void)tile;
+    playfield_cell(y,x);
 }
 
-/**
- * @brief Place the solution value at location
- * 
- * @param y             y-position in puzzle
- * @param x             x-position in puzzle
- * @param tile_value    tile_value
- */
-void set_solution_tile(uint8_t y, uint8_t x, uint8_t tile_value, uint8_t col) {
-    if(tile_value < 8) {
-        tile_value = tile_value * 2;
-    } else {
-        tile_value = (tile_value - 8) * 2 + 0x80;
-    }
-    set_tile(offset_y + y*2, offset_x + x*2, tile_value, col, LAYER1);
-    set_tile(offset_y + y*2, offset_x + x*2+1, tile_value + 1, col, LAYER1);
-    set_tile(offset_y + y*2+1, offset_x + x*2, tile_value + 0x10, col, LAYER1);
-    set_tile(offset_y + y*2+1, offset_x + x*2+1, tile_value + 0x11, col, LAYER1);
+void set_solution_tile(uint8_t y,uint8_t x,uint8_t tile_value,uint8_t col) {
+    (void)tile_value;
+    (void)col;
+    playfield_cell(y,x);
 }
 
 /**
@@ -259,70 +210,41 @@ void set_solution_tile(uint8_t y, uint8_t x, uint8_t tile_value, uint8_t col) {
  * 
  */
 void puzzle_handle_mouse() {
-    static uint8_t mouse_buttons = 0x00;
-    uint8_t tpx = 0;
-    uint8_t tpy = 0;
-    uint16_t *mouse_x = (uint16_t *)0x2;
-    uint16_t *mouse_y = (uint16_t *)0x4;
-    uint16_t idx = 0;
-
-    // read mouse
-    asm("ldx #2");
-    asm("jsr $FF6B");
-    asm("sta %v", mouse_buttons);
-
-    // get board position from mouse position
-    ccurx = ((*mouse_x >> 4) - offset_x) >> 1;
-    ccury = ((*mouse_y >> 4) - offset_y) >> 1;
-    tpx = *mouse_x >> 4;
-    tpy = *mouse_y >> 4;
-
-    if(tpy == 1 && tpx == 38) {
-        set_tile(1, 38, 0x0A, 0x00, LAYER0);
-        if(mouse_buttons & 1) {
-            while(mouse_buttons != 0x00) {
-            asm("ldx #2");
-            asm("jsr $FF6B");
-            asm("sta %v", mouse_buttons);
-            }
-            puzzle_quit();
-        }
-    } else {
-        set_tile(1, 38, 0x08, 0x00, LAYER0);
+    static uint8_t buttons=0,previous=0;
+    static int8_t pressed=-1;
+    uint16_t* mx=(uint16_t*)2;
+    uint16_t* my=(uint16_t*)4;
+    int8_t target=-1;
+    uint8_t idx;
+    asm("ldx #2");asm("jsr $FF6B");asm("sta %v",buttons);
+    if(*mx>=436 && *mx<600) {
+        if(*my>=288 && *my<320)target=1;
     }
-
-    if(tpy == 2 && tpx == 38) {
-        set_tile(2, 38, 0x0B, 0x00, LAYER0);
-        if(mouse_buttons & 1) {
-            while(mouse_buttons != 0x00) {
-                asm("ldx #2");
-                asm("jsr $FF6B");
-                asm("sta %v", mouse_buttons);
-            }
-            gamestate ^= GAME_VERIFY;
+    playfield_controls(target);
+    ccurx=ccury=-1;
+    if(*mx>=offset_x*16 && *mx<(offset_x+puzzlecols*2)*16 &&
+       *my>=offset_y*16 && *my<(offset_y+puzzlerows*2)*16) {
+        ccurx=(*mx-offset_x*16)>>5;
+        ccury=(*my-offset_y*16)>>5;
+        idx=ccury*puzzlecols+ccurx;
+        if(puzzledata[idx]&(TLDT_LOCKED|TLDT_REVEALED))ccurx=ccury=-1;
+    }
+    if(ccurx!=mp_ocurx || ccury!=mp_ocury) {
+        if(mp_ocurx>=0 && mp_ocury>=0)playfield_cell(mp_ocury,mp_ocurx);
+        if(ccurx>=0 && ccury>=0)playfield_cell(ccury,ccurx);
+        mp_ocurx=ccurx;mp_ocury=ccury;
+    }
+    if((buttons&1) && !(previous&1))pressed=target;
+    if(!(buttons&1) && (previous&1)) {
+        if(pressed==target && target==1) {
+            gamestate^=GAME_VERIFY;
+            play_sfx(gamestate&GAME_VERIFY ? SFX_VERIFY_ON : SFX_VERIFY_OFF);
             puzzle_color_numbers();
+            playfield_controls(target);
         }
-    } else {
-        set_tile(2, 38, 0x09, 0x00, LAYER0);
+        pressed=-1;
     }
-
-    // release highlight
-    if(ccurx != mp_ocurx || ccury != mp_ocury) {
-        idx = mp_ocury * puzzlecols + mp_ocurx;
-        if((puzzledata[idx] & TLDT_LOCKED) == 0) {
-            set_puzzle_tile(mp_ocury, mp_ocurx, TILE_EMPTY);
-        }
-    }
-
-    // place highlight
-    if(ccurx >= 0 && ccurx < puzzlecols && ccury >=0 && ccury < puzzlerows) {
-        idx = ccury * puzzlecols + ccurx;
-        if((puzzledata[idx] & (TLDT_LOCKED | TLDT_REVEALED)) == 0) {
-            set_puzzle_tile(ccury, ccurx, TILE_HIGHLIGHT);
-            mp_ocurx = ccurx;
-            mp_ocury = ccury;
-        }
-    }
+    previous=buttons;
 }
 
 /**
@@ -337,7 +259,15 @@ void puzzle_handle_keyboard() {
     asm("jsr $FFE4");
     asm("sta %v", keycode);
 
-    if(keycode >= '1' && keycode <= '9') { // value between 0-9        
+    if(keycode == 0x14 || keycode == 0x08 || keycode == 0x7F || keycode == '0') {
+        if(ccurx<0 || ccury<0)return;
+        idx=ccury*puzzlecols+ccurx;
+        if(userdata[idx] && (userdata[idx]&15)==(puzzledata[idx]&15))tiles_incorrect++;
+        if(userdata[idx])play_sfx(SFX_BACK);
+        userdata[idx]=0;
+        playfield_cell(ccury,ccurx);
+    } else if(keycode >= '1' && keycode <= '9') {
+        if(ccurx<0 || ccury<0)return;
         idx = ccury * puzzlecols + ccurx;
 
         if(puzzledata[idx] & (TLDT_LOCKED | TLDT_REVEALED)) {
@@ -355,18 +285,10 @@ void puzzle_handle_keyboard() {
                 tiles_incorrect++;
             }
 
-            userdata[idx] = keycode - '0';
-            if(gamestate & GAME_VERIFY) {
-                if((puzzledata[idx] & 0x0F) == (userdata[idx] & 0x0F)) {
-                    set_solution_tile(ccury, ccurx, userdata[idx] & 0x0F, 0x5F);
-                } else {
-                    set_solution_tile(ccury, ccurx, userdata[idx] & 0x0F, 0x36);
-                }
-            } else {
-                set_solution_tile(ccury, ccurx, userdata[idx] & 0x0F, 0x12);
-            }
-            userdata[idx] |= TLDT_WRITTEN;
-            //play_thumb();     // need better sound effect for this one
+            userdata[idx] = keycode | TLDT_WRITTEN;
+            playfield_cell(ccury,ccurx);
+            if((gamestate&GAME_VERIFY) && keycode!=(puzzledata[idx]&15))play_sfx(SFX_WRONG);
+            else sound_digit(keycode);
 
             if(tiles_incorrect == 0) {
                 puzzle_complete();
@@ -382,7 +304,7 @@ void puzzle_handle_keyboard() {
  * 
  */
 void puzzle_generate_clues() {
-    uint8_t c,i,j,idx,vrampos = 0;
+    uint8_t c,i,j,idx;
 
     // loop over tiles and generate clues
     for(i=0; i<puzzlerows; i++) {
@@ -393,14 +315,11 @@ void puzzle_generate_clues() {
             if(puzzledata[idx] & TLDT_HCLUE) {
                 c = 0;
                 idx++;
-                while((puzzledata[idx] & 0x0F) > 0 && idx < puzzlecells) {
-                    c += puzzledata[idx];
+                while(idx < (i+1)*puzzlecols && (puzzledata[idx] & 0x0F) > 0) {
+                    c += puzzledata[idx]&15;
                     idx++;
                 }
-                build_clue_tile_right(vrampos, c);
-                set_tile(offset_y + i*2, offset_x + j*2+1, 
-                    ((TILEBASE_CUSTOM - TILEBASE_GAME) >> 8)+vrampos, 0x00, 0);
-                vrampos++;
+                playfield_clue(i,j,c,0);
             }
 
             // generate down clue
@@ -408,14 +327,11 @@ void puzzle_generate_clues() {
             if(puzzledata[idx] & TLDT_VCLUE) {
                 c = 0;
                 idx += puzzlecols;
-                while((puzzledata[idx] & 0x0F) > 0 && idx < (puzzlecells)) {
-                    c += puzzledata[idx];
+                while(idx < puzzlecells && (puzzledata[idx] & 0x0F) > 0) {
+                    c += puzzledata[idx]&15;
                     idx += puzzlecols;
                 }
-                build_clue_tile_down(vrampos, c);
-                set_tile(offset_y + i*2+1, offset_x + j*2, 
-                    ((TILEBASE_CUSTOM - TILEBASE_GAME) >> 8)+vrampos, 0x00, 0);
-                vrampos++;
+                playfield_clue(i,j,c,1);
             }
 
             // this can take quite some time, avoid the sound buffer from emptying
@@ -490,8 +406,9 @@ void puzzle_color_numbers() {
  * 
  */
 void show_game_time() {
+    clock_t previous_time=prevtotal;
     calculate_game_time();
-    print_clock(game_timebuffer, 28, 31);
+    if(prevtotal!=previous_time)playfield_clock(game_timebuffer);
 }
 
 /**
@@ -596,8 +513,10 @@ uint8_t get_nr_incorrect_tiles() {
  */
 void puzzle_complete() {
     uint8_t i,j,idx;
+    play_sfx(SFX_SOLVED);
+    gamestate |= GAME_VERIFY;
 
-    // first, color all tiles green
+    // Mark all completed entries with the journal correctness indicator
     for(i=0; i<puzzlerows; i++) {
         for(j=0; j<puzzlecols; j++) {
             idx = i * puzzlecols + j;
@@ -608,13 +527,13 @@ void puzzle_complete() {
     }
 
     // next, provide a message to the user
-    build_window(11,5,4,30);
-    printtext("Congratulations!!", 11, 5, 0x10);
-    printtext("You finished the puzzle!", 12, 5, 0x15);
-    printtext("Your time is: ", 13, 5, 0x15);
+    playfield_window(11,5,4,30);
+    playfield_text("Congratulations!!", 11, 5);
+    playfield_text("You finished the puzzle!", 12, 5);
+    playfield_text("Your time is: ", 13, 5);
     calculate_game_time();
-    printtext(game_timebuffer, 13, 5+14, 0x10);
-    printtext("Press ENTER to return to menu.", 14, 5, 0x15);
+    playfield_text(game_timebuffer, 13, 5+14);
+    playfield_text("Press ENTER to return to menu.", 14, 5);
     wait_for_key(KEYCODE_RETURN);
 
     // write game state
@@ -629,12 +548,13 @@ void puzzle_complete() {
  * 
  */
 void puzzle_quit() {
-    static uint8_t keycode = 0xFF;
-    save_screen_state();
-    build_window(12,5,2,30);
-    printtext("Are you sure you want to quit?", 12, 5, 0x12);
-    printtext("YES (Y) / NO (N)", 13, 5, 0x12);
-
+    static uint8_t keycode = 0xFF,buttons;
+    uint8_t previous=0;
+    int8_t hover=-1,next,pressed=-1;
+    uint16_t x,y;
+    play_sfx(SFX_DIALOG);
+    playfield_save();
+    playfield_quit_modal();
     // consume previous keycode
     while(keycode != 0) {
         asm("jsr $FFE4");
@@ -644,12 +564,25 @@ void puzzle_quit() {
     while(keycode != 'Y' && keycode != 'N') {
         asm("jsr $FFE4");
         asm("sta %v", keycode);
+        if(keycode==KEYCODE_ESCAPE)keycode='N';
+        asm("ldx #2");asm("jsr $FF6B");asm("sta %v",buttons);
+        x=*(uint16_t*)2;y=*(uint16_t*)4;next=-1;
+        if(y>=256 && y<276) {
+            if(x>=168 && x<296)next=0;
+            if(x>=344 && x<472)next=1;
+        }
+        if(next!=hover) {hover=next;playfield_quit_hover(hover);}
+        if((buttons&1) && !previous)pressed=hover;
+        if(!(buttons&1) && previous && pressed==hover && hover>=0)keycode=hover ? 'N' : 'Y';
+        previous=buttons&1;
         sound_fill_buffers();
     }
     if(keycode == 'Y') {
+        play_sfx(SFX_BACK);
         gamestate |= GAME_QUIT;
     } else {
-        restore_screen_state();
+        play_sfx(SFX_BACK);
+        playfield_restore();
     }
 }
 
@@ -688,13 +621,6 @@ void store_puzzle_state() {
     clock_t end = clock();
     clock_t total = (end - game_start_time) / CLOCKS_PER_SEC;
     
-    // early exit to save upon some clock cycles
-    if(total == prevtotal) {
-        return;
-    } else {
-        prevtotal = total;
-    }
-
     hours = total / 3600;
     total -= hours * 3600;
     minutes = total / 60;
@@ -739,25 +665,25 @@ void build_window(uint8_t y, uint8_t x, uint8_t h, uint8_t w) {
     uint8_t i,j;
 
     // top and bottom borders
-    set_tile(y-1, x-1, 0x15, 0x00, LAYER0);     // left-top
-    set_tile(y+h, x-1, 0x16, 0x00, LAYER0);     // left-bottom
+    set_tile(y-1, x-1, WINDOW_LEFT_TOP, 0x00, LAYER0);          // left-top
+    set_tile(y+h, x-1, WINDOW_LEFT_BOTTOM, 0x00, LAYER0);       // left-bottom
     for(i=0; i<w; i++) {
-        set_tile(y-1, x+i, 0x11, 0x00, LAYER0); // top layer
-        set_tile(y+h, x+i, 0x13, 0x00, LAYER0); // bottom layer
+        set_tile(y-1, x+i, WINDOW_TOP, 0x00, LAYER0);           // top layer
+        set_tile(y+h, x+i, WINDOW_BOTTOM, 0x00, LAYER0);        // bottom layer
     }
-    set_tile(y-1, x+w, 0x10, MIRROR_X, LAYER0); // right-top
-    set_tile(y+h, x+w, 0x16, MIRROR_X, LAYER0); // right-bottom
+    set_tile(y-1, x+w, WINDOW_RIGHT_TOP, MIRROR_X, LAYER0);     // right-top
+    set_tile(y+h, x+w, WINDOW_RIGHT_BOTTOM, MIRROR_X, LAYER0);  // right-bottom
 
     // left and right borders
     for(i=0; i<h; i++) {
-        set_tile(y+i, x-1, 0x12, 0x00, LAYER0);
-        set_tile(y+i, x+w, 0x12, MIRROR_X, LAYER0);
+        set_tile(y+i, x-1, WINDOW_HOR_EDGE, 0x00, LAYER0);
+        set_tile(y+i, x+w, WINDOW_HOR_EDGE, MIRROR_X, LAYER0);
     }
 
     // core
     for(i=0; i<h; i++) {
         for(j=0; j<w; j++) {
-            set_tile(y+i, x+j, 0x14, MIRROR_X, LAYER0);
+            set_tile(y+i, x+j, WINDOW_CORE, MIRROR_X, LAYER0);
         }
     }
 
@@ -777,24 +703,24 @@ void build_window(uint8_t y, uint8_t x, uint8_t h, uint8_t w) {
  */
 void print_clock_border(uint8_t y, uint8_t x) {
     uint8_t i;
-    set_tile(y-1, x-1, 0x22, 0x00, LAYER0);         // top left
-    set_tile(y, x-1, 0x21, 0x00, LAYER0);           // mid left
-    set_tile(y+1, x-1, 0x22, MIRROR_Y, LAYER0);     // bottom left
+    set_tile(y-1, x-1, CLOCK_COR + (pco * 3), 0x00, LAYER0);         // top left
+    set_tile(y, x-1, CLOCK_VER + (pco * 3), 0x00, LAYER0);           // mid left
+    set_tile(y+1, x-1, CLOCK_COR + (pco * 3), MIRROR_Y, LAYER0);     // bottom left
     for(i=0; i<8; i++) {
-        set_tile(y-1, x+i, 0x20, 0x00, LAYER0);
-        set_tile(y+1, x+i, 0x20, MIRROR_Y, LAYER0);
+        set_tile(y-1, x+i, CLOCK_HOR + (pco * 3), 0x00, LAYER0);
+        set_tile(y+1, x+i, CLOCK_HOR + (pco * 3), MIRROR_Y, LAYER0);
     }
-    set_tile(y-1, x+8, 0x22, MIRROR_X, LAYER0);     // top right
-    set_tile(y, x+8, 0x21, MIRROR_X, LAYER0);       // mid right
-    set_tile(y+1, x+8, 0x22, MIRROR_XY, LAYER0);    // bottom right
+    set_tile(y-1, x+8, CLOCK_COR + (pco * 3), MIRROR_X, LAYER0);     // top right
+    set_tile(y, x+8, CLOCK_VER + (pco * 3), MIRROR_X, LAYER0);       // mid right
+    set_tile(y+1, x+8, CLOCK_COR + (pco * 3), MIRROR_XY, LAYER0);    // bottom right
 }
 
 void print_clock(const char* s, uint8_t y, uint8_t x) {
     while(*s != 0) {
         if(*s == ':') {
-            set_tile(y, x, 0x3A, 0x00, LAYER0);
+            set_tile(y, x, 0x4A, 0x00, LAYER0);
         } else {
-            set_tile(y, x, *s - '0' + 0x30, 0x00, LAYER0);
+            set_tile(y, x, *s - '0' + 0x40, 0x00, LAYER0);
         }
         x++;
         s++;
