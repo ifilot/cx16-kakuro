@@ -63,6 +63,9 @@ The build prints concise status messages and keeps warnings and errors visible.
 Use `make run V=1` to see the full build commands and asset generation output.
 
 Use `make dist` to bundle the program and its assets in `build/CX16-KAKURO.ZIP`.
+The package contains six files: `KAKURO.PRG`, `ASSETS.DAT`, `PUZZLE.DAT`,
+`MENU.ZSM`, `GAME.ZSM`, and `SFX.BIN`. Keep them together when running the game;
+`PUZZLE.DAT` stores puzzle progress.
 
 ### Native Windows testing and audio
 

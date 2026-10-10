@@ -39,7 +39,7 @@ void init_screen();
  * @brief Load the tiles from file into memory
  * 
  */
-void load_tiles(const char* filename, uint32_t addr);
+void load_tiles(uint8_t resource, uint32_t addr);
 
 /**
  * @brief Set the tilebase offset for layer0

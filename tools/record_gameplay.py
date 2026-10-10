@@ -90,9 +90,9 @@ def main():
     with tempfile.TemporaryDirectory(prefix='kakuro-demo-') as directory:
         runtime = Path(directory)
         # The game saves puzzle progress; only let it write to disposable copies.
-        for pattern in ('*.DAT', '*.ZSM', '*.BIN', '*.TXT', 'KAKURO.PRG'):
-            for source in (ROOT / 'src').glob(pattern):
-                shutil.copy2(source, runtime / source.name)
+        for name in ('KAKURO.PRG', 'ASSETS.DAT', 'PUZZLE.DAT',
+                     'MENU.ZSM', 'GAME.ZSM', 'SFX.BIN'):
+            shutil.copy2(ROOT / 'src' / name, runtime / name)
         with X16Agent(args.emulator.resolve(), args.rom.resolve(), fsroot=runtime,
                       options=['-prg', str(runtime / 'KAKURO.PRG'), '-run']) as emu:
             def read(name, size=1):

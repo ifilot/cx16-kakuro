@@ -37,6 +37,7 @@ const server = http.createServer((request,response) => {
     await page.waitForFunction(()=>typeof FS!=='undefined' && Module.calledRun && !document.querySelector('#canvas').hidden);
     await page.waitForTimeout(2500);
     const manifest=JSON.parse(fs.readFileSync(path.join(site,'game/manifest.json')));
+    assert.deepEqual(manifest.resources.slice().sort(),['ASSETS.DAT','GAME.ZSM','KAKURO.PRG','MENU.ZSM','PUZZLE.DAT','SFX.BIN']);
     const loaded=await page.evaluate(()=>FS.readdir('/'));
     for(const file of manifest.resources) assert(loaded.includes(file),`${file} missing from emulator filesystem`);
     assert.deepEqual(await page.evaluate(()=>[canvas.width,canvas.height]),[640,480]);
@@ -60,15 +61,18 @@ const server = http.createServer((request,response) => {
 import sys,numpy as np
 from PIL import Image
 from pathlib import Path
+sys.path.insert(0,sys.argv[2])
+from resource_bundle import read_bundle
+resources=read_bundle(sys.argv[3])
 pixels=np.asarray(Image.open(sys.argv[1]).convert('RGB'))
-data=b''.join(Path(p).read_bytes() for p in sys.argv[2:4])
+data=b''.join(resources[name] for name in sys.argv[4:6])
 raw=np.frombuffer(data,dtype=np.uint8)
 indices=np.stack([(raw>>s)&3 for s in (6,4,2,0)],axis=1).reshape(480,640)
 expected=np.array([[204,204,153],[136,102,102],[68,51,51],[34,34,34]],dtype=np.uint8)[indices]
-x,y,w,h=map(int,sys.argv[4:])
+x,y,w,h=map(int,sys.argv[6:])
 assert np.array_equal(pixels[y:y+h,x:x+w],expected[y:y+h,x:x+w]),'Rendered scene does not match game assets'
 if Path(sys.argv[1]).stem=='game':
-    tiledata=np.frombuffer((Path(sys.argv[2]).parent/'GTILES.DAT').read_bytes(),dtype=np.uint8)
+    tiledata=np.frombuffer(resources['GTILES.DAT'],dtype=np.uint8)
     colors=np.array([[0,0,0],[136,102,102],[68,51,51],[34,34,34],[204,204,153]],dtype=np.uint8)
     glyphs=[]
     for char in 'NO. 001':
@@ -76,7 +80,7 @@ if Path(sys.argv[1]).stem=='game':
         glyphs.append(colors[np.stack([raw>>4,raw&15],axis=1).reshape(16,16)])
     assert np.array_equal(pixels[96:112,448:560],np.concatenate(glyphs,axis=1)),'Mouse selected the wrong puzzle'
 
-  `,file,...files.map(f=>path.join(site,'game',f)),...box.map(String)],{encoding:'utf8'});
+  `,file,path.join(root,'assets/scripts'),path.join(site,'game/ASSETS.DAT'),...files,...box.map(String)],{encoding:'utf8'});
         if (result.status===0) return;
         assert(!result.error,result.error?.message);
         if (Date.now()>=deadline) {

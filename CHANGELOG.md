@@ -14,6 +14,13 @@
 
 ### Changed
 
+- Reduce the distribution to six files: `KAKURO.PRG`, `ASSETS.DAT`,
+  `PUZZLE.DAT`, `MENU.ZSM`, `GAME.ZSM`, and `SFX.BIN`.
+- Combine graphics, fonts, controls, dialogs, and Help/About content into an
+  indexed resource container, retaining the existing RAM and video-memory caches.
+- Keep puzzle progress separate and compatible with v0.3.0 saves.
+- Check resource-layout compatibility at startup and verify the six-file package
+  in build and emulator tests.
 - Scene transitions now fade smoothly through paper over six frames in each
   direction, using the outgoing scene's palette for the initial fade.
 - Build output is concise by default; `V=1` shows full commands and asset output.
@@ -43,7 +50,7 @@
 - Dedicated menu music (**Niwa**) and puzzle music (**Quiet Grid**), plus 18 sound
   effects for navigation, number entry, checking, dialogs, and completion.
 - A browser-playable website with fullscreen controls, a downloadable game bundle,
-  and GitHub Pages deployment.
+  GitHub Pages deployment, and mobile panning, tap selection, and an on-screen keypad.
 - Native Windows launcher and emulator build scripts.
 - Root-level build, emulator launch, distribution, website, and tilesheet targets,
   plus automated checks for assets, gameplay, documents, audio, and transitions.
@@ -62,7 +69,10 @@
 
 ### Fixed
 
-- Corrected a puzzle source and excluded unused empty puzzle files from generation.
+- Corrected the duplicate entry in puzzle 031 and excluded unused empty puzzle
+  files from generation.
+- Fixed menu hover artifacts, clue-text alignment, blocked-cell diagonals, and
+  modal button placement.
 - Browser checks wait for scene rendering and mouse calibration before clicking.
 - Corrected the release ZIP artifact handoff between build and publication jobs.
 
@@ -72,8 +82,10 @@
 
 - Expanded the playable collection from 48 to 96 puzzles, including 9x9 and 10x10
   boards alongside the existing 6x6, 7x7, and 8x8 sizes.
-- Multiple puzzle selection pages and metadata for board size and difficulty.
+- Multiple puzzle selection pages, puzzle-size labels, difficulty indicators,
+  and metadata for board size and difficulty.
 - An 8x8 font and an in-game document viewer for Help and About.
+- Confirmation before leaving a puzzle.
 
 ### Changed
 

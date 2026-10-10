@@ -19,6 +19,7 @@
  **************************************************************************/
 
 #include "video.h"
+#include "resource.h"
 
 /**
  * @brief Initialize screen
@@ -62,10 +63,8 @@ void set_tilebase_layer0(uint16_t addr) {
  * @brief Load the tiles from file into video memory
  * 
  */
-void load_tiles(const char* filename, uint32_t addr) {
-    cbm_k_setnam(filename);
-    cbm_k_setlfs(0, 8, 2);
-    cbm_k_load(2 + (addr >> 16), addr);
+void load_tiles(uint8_t resource, uint32_t addr) {
+    resource_vram(resource, addr);
 }
 
 /**

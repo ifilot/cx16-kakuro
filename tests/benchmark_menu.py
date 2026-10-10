@@ -1,4 +1,6 @@
 """Measure menu loop CPU cycles, independent of emulator host speed."""
+from runtime_assets import copy_runtime
+
 import argparse
 from pathlib import Path
 import re
@@ -21,9 +23,7 @@ def main():
         r'al ([0-9A-Fa-f]+) \.(\S+)', (ROOT / 'src/KAKURO.sym').read_text()))
     with tempfile.TemporaryDirectory() as directory:
         runtime = Path(directory)
-        for pattern in ('*.DAT', '*.ZSM', '*.BIN', '*.TXT', 'KAKURO.PRG'):
-            for source in (ROOT / 'src').glob(pattern):
-                shutil.copy2(source, runtime / source.name)
+        copy_runtime(ROOT/'src', runtime)
         if args.progress:
             path = runtime / 'PUZZLE.DAT'
             data = bytearray(path.read_bytes())
