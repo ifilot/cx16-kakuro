@@ -64,6 +64,7 @@ void show_start_screen(void) {
     load_puzzles();
     menu_prepare_cache();
     load_tiles("jcursor.dat",0x1E000UL);
+    load_tiles("tpage.dat",0x1F200UL);
     /* Banks 3 and lower 4 hold the persistent quit bitmap; effects use upper 4. */
     i=*(volatile uint8_t*)0;
     *(volatile uint8_t*)0=3;

@@ -513,6 +513,12 @@ uint8_t get_nr_incorrect_tiles() {
  */
 void puzzle_complete() {
     uint8_t i,j,idx;
+    static uint8_t buttons;
+    uint8_t previous=0,pressed=0,hover=0,next,key;
+    uint16_t x,y;
+    // Capture the finishing time before the player spends time on the card.
+    calculate_game_time();
+    store_puzzle_state();
     play_sfx(SFX_SOLVED);
     gamestate |= GAME_VERIFY;
 
@@ -524,20 +530,23 @@ void puzzle_complete() {
                 set_solution_tile(i, j, userdata[idx] & 0x0F, 0x5F);
             }
         }
+        sound_fill_buffers();
     }
 
-    // next, provide a message to the user
-    playfield_window(11,5,4,30);
-    playfield_text("Congratulations!!", 11, 5);
-    playfield_text("You finished the puzzle!", 12, 5);
-    playfield_text("Your time is: ", 13, 5);
-    calculate_game_time();
-    playfield_text(game_timebuffer, 13, 5+14);
-    playfield_text("Press ENTER to return to menu.", 14, 5);
-    wait_for_key(KEYCODE_RETURN);
-
-    // write game state
-    store_puzzle_state();
+    playfield_complete_modal(game_timebuffer);
+    while(cbm_k_getin())sound_fill_buffers();
+    do {
+        key=cbm_k_getin();
+        asm("ldx #2");asm("jsr $FF6B");asm("sta %v",buttons);
+        x=*(uint16_t*)2;y=*(uint16_t*)4;
+        next=x>=256 && x<384 && y>=276 && y<296;
+        if(next!=hover) {hover=next;playfield_complete_hover(hover);}
+        if((buttons&1) && !previous)pressed=hover;
+        if(!(buttons&1) && previous && pressed && hover)key=KEYCODE_RETURN;
+        previous=buttons&1;
+        sound_fill_buffers();
+    } while(key!=KEYCODE_RETURN);
+    play_sfx(SFX_BACK);
 
     // update game state
     gamestate |= GAME_COMPLETE;

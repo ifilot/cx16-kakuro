@@ -64,6 +64,36 @@ Use `make run V=1` to see the full build commands and asset generation output.
 
 Use `make dist` to bundle the program and its assets in `build/CX16-KAKURO.ZIP`.
 
+### Native Windows testing and audio
+
+From Windows, double-click `run.bat` or run it in Command Prompt. It builds
+with WSL, then launches the Windows emulator directly. It finds the neighboring
+`emulator-win` installation as well as locally built emulators. Set `X16_EMU`
+and `X16_ROM` to use another executable or ROM. If the game is already built:
+
+```bat
+set KAKURO_SKIP_BUILD=1
+run.bat
+```
+
+To build the neighboring emulator from source, run `build-emulator-windows.bat`
+after installing the MSYS2 packages listed by that script.
+
+For intermittent audio stutter, compare the same puzzle session with a larger
+host audio buffer and record the emulated audio:
+
+```bat
+run.bat -abufs 64 -wav "../build/kakuro-audio.wav"
+```
+
+Exit the emulator to finalize the WAV. If the WAV plays smoothly but live
+audio jitters, investigate host audio buffering or scheduling; increasing
+`-abufs` adds latency. If the WAV also stutters, investigate game playback or
+emulator timing. Compare menu music, digit entry, Check, completion and scene
+changes. Music uses ZSMKit's disk stream buffers; those are separate from the
+emulator's host audio buffers. `python3 tests/check_audio.py` checks PSG writes,
+track looping and effects, but cannot validate Windows audio output.
+
 Use `make demo` to automatically record `img/cx16-kakuro-gameplay.gif` at
 640×480 and 10 frames per second. It shows the title, puzzle selection,
 solving through clue groups and intersections, completion,

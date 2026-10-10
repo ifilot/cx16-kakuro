@@ -21,6 +21,8 @@ set "X16_EMU=%~dp0..\x16-emulator\build\Release\x16emu.exe"
 if exist "%X16_EMU%" goto emulator_found
 set "X16_EMU=%~dp0..\x16-emulator\x16emu.exe"
 if exist "%X16_EMU%" goto emulator_found
+set "X16_EMU=%~dp0..\emulator-win\x16emu.exe"
+if exist "%X16_EMU%" goto emulator_found
 set "X16_EMU=%~dp0..\emulator\x16emu.exe"
 if exist "%X16_EMU%" (
     echo Using the existing Windows emulator. For the new emulator, run build-emulator-windows.bat.
@@ -32,7 +34,15 @@ if not exist "%X16_EMU%" (
     echo Run build-emulator-windows.bat or set X16_EMU to an x16emu.exe path.
     goto failed
 )
-if not defined X16_ROM set "X16_ROM=%~dp0..\emulator\rom.bin"
+if defined X16_ROM goto rom_found
+for %%R in ("%~dp0..\emulator\rom.bin" "%~dp0..\emulator-win\rom.bin" "%~dp0build\windows-emulator\rom.bin") do (
+    if exist "%%~R" (
+        set "X16_ROM=%%~R"
+        goto rom_found
+    )
+)
+for %%E in ("%X16_EMU%") do set "X16_ROM=%%~dpErom.bin"
+:rom_found
 if not exist "%X16_ROM%" (
     echo ROM not found: "%X16_ROM%". Set X16_ROM to your rom.bin path.
     goto failed

@@ -21,14 +21,14 @@ def main():
         for name in ('Makefile','VERSION'):shutil.copy2(ROOT/name,root/name)
         env=dict(os.environ,GIT_DIR=str(ROOT/'.git'),GIT_WORK_TREE=str(root),PYTHONDONTWRITEBYTECODE='1')
         def build():
-            result=subprocess.run(['make'],cwd=root,env=env,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+            result=subprocess.run(['make','V=1'],cwd=root,env=env,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
             assert result.returncode==0,result.stdout
             return result.stdout
         def read(name):return (root/'src'/name).read_bytes()
         build()
         assert (root/'src/KAKURO.PRG').is_file()
         assert not any((root/'src'/name).exists() for name in ('TILES.DAT','MTILES.DAT','SDIGITS.DAT','FONT16.DAT'))
-        for name in ('GTILES.DAT','FONT8.DAT','JUI.DAT','GQUIT.DAT','SPLASH0.DAT','SPLASH1.DAT'):
+        for name in ('GTILES.DAT','FONT8.DAT','JUI.DAT','GQUIT.DAT','GCOMPLETE.DAT','TPAGE.DAT','SPLASH0.DAT','SPLASH1.DAT'):
             assert read(name)==(ROOT/'src'/name).read_bytes(),name
         atlas=read('GTILES.DAT');font=read('FONT8.DAT');menu=read('JUI.DAT')
         # Alter the first blocked-cell pixel. Only that cell's atlas tile may change.

@@ -12,7 +12,7 @@ with tempfile.TemporaryDirectory() as temp:
  p=Path(temp)
  for pattern in ('*.DAT','*.ZSM','*.BIN','KAKURO.PRG'):
   for f in (ROOT/'src').glob(pattern):shutil.copy2(f,p/f.name)
- with X16Agent(ROOT.parent/'x16-emulator/build/x16emu',ROOT.parent/'emulator/rom.bin',fsroot=p,options=['-prg',str(p/'KAKURO.PRG'),'-run']) as e:
+ with X16Agent(ROOT.parent/'x16-emulator/build/x16emu',next(p for p in (ROOT.parent/'emulator/rom.bin',ROOT.parent/'emulator-win/rom.bin') if p.is_file()),fsroot=p,options=['-prg',str(p/'KAKURO.PRG'),'-run']) as e:
   def transition(label,event,entry):
    e.request('breakpoint',address=sym[entry]);e.request('breakpoint',address=0xFFD5);start=e.request('status')['cycles'];event();loads=0
    for _ in range(1000):
@@ -21,6 +21,10 @@ with tempfile.TemporaryDirectory() as temp:
     if r['reason']=='breakpoint':
      if r['state']['pc']==sym[entry]:break
      assert r['state']['pc']==0xFFD5,r
+     if e.read_memory(sym['_transition_covered'])[0]:
+      assert e.read_memory(0x9F29)[0]&0x40,(label,'Page indicator hidden')
+      assert all(e.read_memory(0x1fc0e+i*8,space='vram')[0]&12 for i in range(3)),label
+      assert e.read_memory(0x1f200,1536,space='vram')==(ROOT/'src/TPAGE.DAT').read_bytes(),label
      loads+=1
      e.request('breakpoint',action='clear');e.advance(1,unit='instructions')
      e.request('breakpoint',address=sym[entry]);e.request('breakpoint',address=0xFFD5)

@@ -47,7 +47,7 @@ with tempfile.TemporaryDirectory(prefix='kakuro-audio-') as temp:
     for pattern in ('*.DAT','*.ZSM','*.BIN','KAKURO.PRG'):
         for source in (ROOT/'src').glob(pattern):shutil.copy2(source,runtime/source.name)
     with (runtime/'emulator.log').open('w') as log,X16Agent(
-        ROOT.parent/'x16-emulator/build/x16emu',ROOT.parent/'emulator/rom.bin',fsroot=runtime,
+        ROOT.parent/'x16-emulator/build/x16emu',next(p for p in (ROOT.parent/'emulator/rom.bin',ROOT.parent/'emulator-win/rom.bin') if p.is_file()),fsroot=runtime,
         options=['-prg',str(runtime/'KAKURO.PRG'),'-run'],stderr=log) as emu:
         def advance(frames):assert emu.advance(frames)['reason']=='target'
         def key(name):

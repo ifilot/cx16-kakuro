@@ -12,6 +12,8 @@ void playfield_clock(const char* value);
 void playfield_text(const char* value,uint8_t row,uint8_t col);
 void playfield_quit_modal(void);
 void playfield_quit_hover(int8_t hover);
+void playfield_complete_modal(const char* time);
+void playfield_complete_hover(uint8_t hover);
 void playfield_save(void);
 void playfield_restore(void);
 void playfield_window(uint8_t row,uint8_t col,uint8_t height,uint8_t width);

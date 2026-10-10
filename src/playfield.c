@@ -187,3 +187,36 @@ void playfield_quit_modal(void) {
     rectangle_write();
     *(volatile uint8_t*)0=bank;
 }
+
+void playfield_complete_hover(uint8_t hover) {
+    uint8_t bank=*(volatile uint8_t*)0;
+    *(volatile uint8_t*)0=6;
+    menu_blit_source=(const uint8_t*)(BANKED_RAM+5632+hover*640);
+    menu_blit_width=32;menu_blit_height=20;
+    VERA.control=0;VERA.address=276*160UL+64;VERA.address_hi=0x10;
+    menu_blit();
+    *(volatile uint8_t*)0=bank;
+}
+
+void playfield_complete_modal(const char* time) {
+    uint8_t row,col,digit,bank=*(volatile uint8_t*)0;
+    sound_fill_buffers();
+    *(volatile uint8_t*)0=5;
+    cbm_k_setnam("gcomplete.dat");cbm_k_setlfs(0,8,2);cbm_k_load(0,BANKED_RAM);
+    *(volatile uint8_t*)0=5;
+    for(row=10;row<19;row++)for(col=8;col<32;col++)map_tile(row,col,0,0);
+    menu_blit_source=(const uint8_t*)BANKED_RAM;
+    menu_blit_width=96;menu_blit_height=144;
+    VERA.control=0;VERA.address=160*160UL+32;VERA.address_hi=0x10;
+    rectangle_write();
+    *(volatile uint8_t*)0=6;
+    for(col=0;col<8;col++) {
+        digit=time[col]==':' ? 10 : time[col]-'0';
+        menu_blit_source=(const uint8_t*)(BANKED_RAM+6912+digit*64);
+        menu_blit_width=4;menu_blit_height=16;
+        VERA.control=0;VERA.address=254*160UL+64+col*4;VERA.address_hi=0x10;
+        menu_blit();
+    }
+    *(volatile uint8_t*)0=bank;
+    sound_fill_buffers();
+}
