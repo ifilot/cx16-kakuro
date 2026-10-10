@@ -55,11 +55,30 @@ Compilation is fairly straightforward. Run `make` from the repository root.
 make
 ```
 
-Use `make run` to build and launch the emulator. The default paths are
-`../x16-emulator/build/x16emu` and `../emulator/rom.bin`; override them with
-`make run EMU=/path/to/x16emu ROM=/path/to/rom.bin` if needed.
+Use `make run` to build and launch the emulator. The default emulator is
+`../x16-emulator/build/x16emu`. The ROM is selected from `../emulator/rom.bin`,
+`rom.bin` beside the emulator, or `../emulator-win/rom.bin`, in that order.
+Override these with `make run EMU=/path/to/x16emu ROM=/path/to/rom.bin` if needed.
+The build prints concise status messages and keeps warnings and errors visible.
+Use `make run V=1` to see the full build commands and asset generation output.
 
 Use `make dist` to bundle the program and its assets in `build/CX16-KAKURO.ZIP`.
+
+Use `make demo` to automatically record `img/cx16-kakuro-gameplay.gif` at
+640×480 and 10 frames per second. It shows the title, puzzle selection,
+solving through clue groups and intersections, completion,
+and returning to the menu. The approximately 25-second sequence uses curved,
+eased mouse movements. Recording uses the neighboring AgentBridge emulator
+and its Python client, with Pillow for GIF encoding.
+It runs without a window and uses temporary game files to preserve your saves.
+The `EMU` and `ROM` overrides also apply; set `DEMO_GIF=/path/to/movie.gif`
+to choose another output location. A relocated Python client can be supplied
+with `--api-dir` when running the script directly:
+
+```bash
+python3 tools/record_gameplay.py --emulator /path/to/x16emu \
+  --rom /path/to/rom.bin --api-dir /path/to/api/python
+```
 
 ## Dependencies
 
