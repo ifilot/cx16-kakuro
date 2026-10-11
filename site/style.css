@@ -36,11 +36,14 @@ canvas { display: block; width: 640px; height: 480px; image-rendering: crisp-edg
 .gallery-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 24px; margin-bottom: 24px; }
 .gallery h2 { font-size: 34px; margin: 0; }
 .gallery-heading p, .gallery figcaption p { font-size: 13px; line-height: 1.8; color: #716357; margin: 0; }
-.gallery-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.gallery-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
 .gallery figure { margin: 0; min-width: 0; }
 .gallery img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 8px; background: #e8e3ce; }
 .gallery figcaption { padding: 16px 0 0; }
 .gallery h3 { font-family: Georgia, serif; font-weight: 400; font-size: 20px; margin: 8px 0; }
+@media (max-width: 1000px) {
+  .gallery-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 @media (max-width: 760px) {
   .gallery-heading { flex-direction: column; gap: 12px; }
   .gallery-grid { gap: 16px; }
