@@ -113,6 +113,24 @@ python3 tools/record_gameplay.py --emulator /path/to/x16emu \
   --rom /path/to/rom.bin --api-dir /path/to/api/python
 ```
 
+### Website gameplay video
+
+The website includes a silent 640×480 gameplay recording with playback controls.
+To refresh it, install FFmpeg and record a new demo, then encode the MP4:
+
+```bash
+make demo DEMO_GIF=build/website-gameplay.gif
+ffmpeg -y -i build/website-gameplay.gif -an -c:v libx264 -preset slow -crf 18 \
+  -pix_fmt yuv420p -movflags +faststart site/gameplay.mp4
+python3 - <<'PY'
+from PIL import Image
+with Image.open('build/website-gameplay.gif') as recording:
+    recording.convert('RGB').save('site/gameplay-poster.webp', quality=85)
+PY
+```
+
+Run `make site` to include the refreshed video and poster in the website build.
+
 ## Dependencies
 
 CX16-KAKURO makes use of [zsmkit](https://github.com/mooinglemur/zsmkit) which
