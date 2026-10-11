@@ -1,7 +1,7 @@
 #ifndef TRANSITION_H
 #define TRANSITION_H
 #include <stdint.h>
-/* Keep a paper-colored bitmap visible while the next scene is assembled. */
+/* Fade through paper with a persistent page indicator while scenes load. */
 void transition_begin(void);
 void transition_end(uint8_t video);
 void transition_prepare(void);

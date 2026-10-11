@@ -1,4 +1,6 @@
 """Exercise journal gameplay, all five grid sizes, entry/check/erase and dialogs."""
+from runtime_assets import copy_runtime
+
 import argparse
 from pathlib import Path
 import re
@@ -20,10 +22,9 @@ def main():
         runtime=Path(directory)
         captures=args.screenshots.resolve() if args.screenshots else runtime/'screenshots'
         captures.mkdir(parents=True,exist_ok=True)
-        for pattern in ('*.DAT','*.ZSM', '*.BIN','*.TXT','KAKURO.PRG'):
-            for source in (ROOT/'src').glob(pattern):shutil.copy2(source,runtime/source.name)
+        copy_runtime(ROOT/'src', runtime)
         with (runtime/'emulator.log').open('w') as log,X16Agent(
-            ROOT.parent/'x16-emulator/build/x16emu',ROOT.parent/'emulator/rom.bin',fsroot=runtime,
+            ROOT.parent/'x16-emulator/build/x16emu',next(p for p in (ROOT.parent/'emulator/rom.bin',ROOT.parent/'emulator-win/rom.bin') if p.is_file()),fsroot=runtime,
             options=['-prg',str(runtime/'KAKURO.PRG'),'-run'],stderr=log) as emu:
             def variable(name,length=1):return int.from_bytes(emu.read_memory(symbols[name],length),'little')
             def advance(frames):
@@ -165,8 +166,30 @@ def main():
                     move(variable('_offset_x')*16+c*32+16,variable('_offset_y')*16+r*32+16,True)
                     key(str(cells[index]&15))
                 capture('game-completed')
-                key('Return',180);ready()
+                # Verify the actual card pixels: a bank-spanning LOAD leaves
+                # the selected bank changed, which can corrupt a valid atlas.
+                card=(ROOT/'src/GCOMPLETE.DAT').read_bytes()[:13824]
+                for row in range(144):
+                    actual=emu.read_memory((160+row)*160+32,96,space='vram')
+                    expected=card[row*96:(row+1)*96]
+                    if 94<=row<110:
+                        assert actual[:32]==expected[:32] and actual[64:]==expected[64:]
+                    else:assert actual==expected,row
+                progress=emu.read_memory(0,8192,space='banked_ram',bank=2)
                 assert status(number)&1
+                advance(180)
+                assert emu.read_memory(0,8192,space='banked_ram',bank=2)==progress
+                # The completion loop accepts a press/release on its button.
+                for _ in range(8):
+                    pos=emu.read_memory(2,4)
+                    px=int.from_bytes(pos[:2],'little');py=int.from_bytes(pos[2:],'little')
+                    if (px,py)==(320,286):break
+                    emu.request('mouse',dx=max(-255,min(255,320-px)),dy=max(-255,min(255,286-py)))
+                    advance(12)
+                emu.request('mouse',buttons=1);advance(8)
+                emu.request('mouse',buttons=0);advance(180);ready()
+                assert status(number)&1
+                assert emu.read_memory(0,8192,space='banked_ram',bank=2)==progress
             print('PASS: four-color 640x480 gameplay, five sizes, entry/erase/check, input bounds,')
             print('      quit/cancel restoration, completion and solved progress.')
             if args.screenshots:print('Screenshots:',captures)

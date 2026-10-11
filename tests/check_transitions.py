@@ -1,8 +1,10 @@
-"""Measure scene latency and LOAD calls, checking that loading keeps L0 visible.
+"""Measure scene latency and resource reads, checking the visible page indicator.
 
 Measurements include input delivery, rendering, audio and the paper fade at
 8 MHz. Temporary runtime copies protect saved puzzle status.
 """
+from runtime_assets import copy_runtime
+
 import re,sys,shutil,tempfile
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT.parent/'x16-emulator/api/python'))
@@ -10,22 +12,29 @@ from x16agent import X16Agent
 sym={n:int(a,16) for a,n in re.findall(r'al ([\da-fA-F]+) \.(\S+)',(ROOT/'src/KAKURO.sym').read_text())}
 with tempfile.TemporaryDirectory() as temp:
  p=Path(temp)
- for pattern in ('*.DAT','*.ZSM','*.BIN','KAKURO.PRG'):
-  for f in (ROOT/'src').glob(pattern):shutil.copy2(f,p/f.name)
- with X16Agent(ROOT.parent/'x16-emulator/build/x16emu',ROOT.parent/'emulator/rom.bin',fsroot=p,options=['-prg',str(p/'KAKURO.PRG'),'-run']) as e:
+ copy_runtime(ROOT/'src', p)
+ with X16Agent(ROOT.parent/'x16-emulator/build/x16emu',next(p for p in (ROOT.parent/'emulator/rom.bin',ROOT.parent/'emulator-win/rom.bin') if p.is_file()),fsroot=p,options=['-prg',str(p/'KAKURO.PRG'),'-run']) as e:
   def transition(label,event,entry):
-   e.request('breakpoint',address=sym[entry]);e.request('breakpoint',address=0xFFD5);start=e.request('status')['cycles'];event();loads=0
+   def breakpoints():
+    for address in (sym[entry],sym['_resource_load'],0xFFD5):e.request('breakpoint',address=address)
+   breakpoints();start=e.request('status')['cycles'];event();loads=resources=0
    for _ in range(1000):
     assert e.read_memory(0x9F29)[0]&0x10,(label,'Display blanked')
     r=e.advance(1)
     if r['reason']=='breakpoint':
      if r['state']['pc']==sym[entry]:break
-     assert r['state']['pc']==0xFFD5,r
-     loads+=1
+     assert r['state']['pc'] in (0xFFD5,sym['_resource_load']),r
+     if e.read_memory(sym['_transition_covered'])[0]:
+      assert e.read_memory(0x9F29)[0]&0x40,(label,'Page indicator hidden')
+      assert all(e.read_memory(0x1fc0e+i*8,space='vram')[0]&12 for i in range(3)),label
+      assert e.read_memory(0x1f200,1536,space='vram')==(ROOT/'src/TPAGE.DAT').read_bytes(),label
+     if r['state']['pc']==0xFFD5:loads+=1
+     else:resources+=1
      e.request('breakpoint',action='clear');e.advance(1,unit='instructions')
-     e.request('breakpoint',address=sym[entry]);e.request('breakpoint',address=0xFFD5)
+     breakpoints()
    e.request('breakpoint',action='clear');assert r['reason']=='breakpoint',r
-   cost=e.request('status')['cycles']-start;print(label,cost,round(cost/8000,2),'ms;',loads,'KERNAL LOAD breakpoint hits',flush=True)
+   assert resources>0,(label,'No bundled resources loaded')
+   cost=e.request('status')['cycles']-start;print(label,cost,round(cost/8000,2),'ms;',resources,'resource reads;',loads,'KERNAL LOAD breakpoint hits',flush=True)
   def key(name):e.request('key',key=name,down=True)
   def release(name):e.request('key',key=name,down=False);e.advance(12)
   e.advance(300)

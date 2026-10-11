@@ -28,7 +28,7 @@
 #include "sound.h"
 
 void docview_init_screen(void);
-void docview_load_file(const char* filename);
+void docview_load_text(uint8_t resource);
 void docview_show_file(void);
 void docview_handle_key(void);
 void docview_leave(void);

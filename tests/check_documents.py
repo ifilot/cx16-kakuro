@@ -1,4 +1,6 @@
 """Check journal documents in the live CX16 emulator without saving game progress."""
+from runtime_assets import copy_runtime
+
 import argparse, re, shutil, sys, tempfile
 from pathlib import Path
 from PIL import Image
@@ -13,9 +15,8 @@ with tempfile.TemporaryDirectory(prefix='kakuro-documents-') as temp:
     runtime=Path(temp)
     captures=args.screenshots.resolve() if args.screenshots else runtime/'screenshots'
     captures.mkdir(parents=True,exist_ok=True)
-    for pattern in ('*.DAT','*.ZSM', '*.BIN','KAKURO.PRG'):
-        for source in (ROOT/'src').glob(pattern):shutil.copy2(source,runtime/source.name)
-    with X16Agent(ROOT.parent/'x16-emulator/build/x16emu',ROOT.parent/'emulator/rom.bin',fsroot=runtime,options=['-prg',str(runtime/'KAKURO.PRG'),'-run']) as emu:
+    copy_runtime(ROOT/'src', runtime)
+    with X16Agent(ROOT.parent/'x16-emulator/build/x16emu',next(p for p in (ROOT.parent/'emulator/rom.bin',ROOT.parent/'emulator-win/rom.bin') if p.is_file()),fsroot=runtime,options=['-prg',str(runtime/'KAKURO.PRG'),'-run']) as emu:
         def advance(n=16):
             assert emu.advance(n)['reason']=='target'
         def key(name):

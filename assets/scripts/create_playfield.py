@@ -5,6 +5,7 @@ import json
 import numpy as np
 from PIL import Image, ImageDraw
 from create_menu import ASSETS, COLORS, pack, glyphs, panel
+from difficulty import blossom
 
 
 def tiles(image):
@@ -112,6 +113,43 @@ def main():
             buttons.extend(pack(button))
             if not state:modal.paste(button,(x,64))
     (output/'GQUIT.DAT').write_bytes(pack(modal)+buttons)
+    # Completion card, button states and large clock glyphs fit in banks 5-6.
+    complete=Image.new('RGB',(384,144),brown)
+    panel(complete,(3,3,381,141),ink,ink)
+    panel(complete,(0,0,381,141),paper,brown)
+    blossom(complete,184,10,True,COLORS)
+    glyphs(complete,font,'PUZZLE COMPLETE',132,34,brown)
+    glyphs(complete,font,'Every number has found its place.',60,50,rose)
+    ImageDraw.Draw(complete).line((48,68,332,68),fill=rose)
+    glyphs(complete,font,'YOUR TIME',156,78,rose)
+    buttons=bytearray()
+    for state in range(2):
+        button=Image.new('RGB',(128,20),paper)
+        panel(button,(0,0,128,20),brown if state else paper,rose)
+        glyphs(button,font,'ENTER JOURNAL',12,6,paper if state else brown)
+        buttons.extend(pack(button))
+        if not state:complete.paste(button,(128,116))
+    clock=bytearray()
+    for char in '0123456789:':
+        digit=Image.new('RGB',(16,16),paper)
+        glyphs(digit,font,char,0,0,brown,2)
+        clock.extend(pack(digit))
+    data=pack(complete)+buttons+clock
+    assert len(data)<=16384
+    (output/'GCOMPLETE.DAT').write_bytes(data)
+    # Three 64x16 4bpp sprites, in otherwise unused VRAM $1F200..$1F7FF.
+    turning=Image.new('RGB',(128,16),paper)
+    glyphs(turning,font,'TURNING THE PAGE',4,4,brown)
+    icon=Image.new('RGB',(64,16),paper)
+    blossom(icon,24,0,True,COLORS)
+    sprites=bytearray()
+    for image in (turning.crop((0,0,64,16)),turning.crop((64,0,128,16)),icon):
+        pixels=np.asarray(image)
+        indices=np.zeros(pixels.shape[:2],dtype=np.uint8)
+        for index,color in enumerate(COLORS):
+            indices[np.all(pixels==color,axis=2)]=index+1
+        sprites.extend(((indices[:,0::2]<<4)|indices[:,1::2]).tobytes())
+    (output/'TPAGE.DAT').write_bytes(sprites)
     (output/'GTILES.DAT').write_bytes(gfx)
     # Controls are cached in RAM banks 7-8 and blitted to the bitmap.
     controls=bytearray()
